@@ -2,7 +2,6 @@ import httpx
 import respx
 
 from promptrails import PromptRails
-from promptrails.types import AgentExecution
 
 BASE = "http://localhost:8082"
 
