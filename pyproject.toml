@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "promptrails"
+version = "0.1.0"
+description = "Official Python SDK for the PromptRails API"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "PromptRails", email = "support@promptrails.ai"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+dependencies = [
+    "httpx>=0.25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "respx>=0.20",
+    "ruff>=0.8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/promptrails/promptrails"
+Documentation = "https://promptrails.ai/docs"
+Repository = "https://github.com/promptrails/promptrails"
+
+[tool.setuptools.packages.find]
+include = ["promptrails*"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "RUF",  # ruff-specific rules
+]
+ignore = [
+    "UP006", # use dict instead of Dict (keep compat with py38)
+    "UP007", # use X | Y for union types (not available in py38)
+    "UP037", # remove quotes from type annotations (keep forward refs)
+    "UP045", # use X | None (not available in py38)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["promptrails"]
+
+[tool.ruff.format]
+quote-style = "double"
