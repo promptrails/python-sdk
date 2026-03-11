@@ -10,10 +10,10 @@ from .data_sources import AsyncDataSourcesResource, DataSourcesResource
 from .executions import AsyncExecutionsResource, ExecutionsResource
 from .guardrails import AsyncGuardrailsResource, GuardrailsResource
 from .llm_models import AsyncLLMModelsResource, LLMModelsResource
-from .media import AsyncMediaResource, MediaResource
-from .media_models import AsyncMediaModelsResource, MediaModelsResource
 from .mcp_templates import AsyncMCPTemplatesResource, MCPTemplatesResource
 from .mcp_tools import AsyncMCPToolsResource, MCPToolsResource
+from .media import AsyncMediaResource, MediaResource
+from .media_models import AsyncMediaModelsResource, MediaModelsResource
 from .memories import AsyncMemoriesResource, MemoriesResource
 from .prompts import AsyncPromptsResource, PromptsResource
 from .scores import AsyncScoresResource, ScoresResource
@@ -39,10 +39,10 @@ __all__ = [
     "AsyncExecutionsResource",
     "AsyncGuardrailsResource",
     "AsyncLLMModelsResource",
-    "AsyncMediaModelsResource",
-    "AsyncMediaResource",
     "AsyncMCPTemplatesResource",
     "AsyncMCPToolsResource",
+    "AsyncMediaModelsResource",
+    "AsyncMediaResource",
     "AsyncMemoriesResource",
     "AsyncPromptsResource",
     "AsyncScoresResource",
@@ -58,10 +58,10 @@ __all__ = [
     "ExecutionsResource",
     "GuardrailsResource",
     "LLMModelsResource",
-    "MediaModelsResource",
-    "MediaResource",
     "MCPTemplatesResource",
     "MCPToolsResource",
+    "MediaModelsResource",
+    "MediaResource",
     "MemoriesResource",
     "PromptsResource",
     "ScoresResource",
