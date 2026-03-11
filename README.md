@@ -83,6 +83,42 @@ except NotFoundError as e:
 | `client.approvals`        | `list`, `get`, `decide`                                                  |
 | `client.webhook_triggers` | `list`, `get`, `create`, `update`, `delete`                              |
 | `client.a2a`              | `get_agent_card`, `send_message`, `get_task`, `list_tasks`, `cancel_task` |
+| `client.media_models`     | `list`                                                                   |
+| `client.media`            | `generate`                                                               |
+| `client.assets`           | `list`, `get`, `delete`, `get_signed_url`                                |
+
+### Media Studio
+
+Generate images, speech, and video using various providers:
+
+```python
+# List available media models
+models = client.media_models.list(media_type="image")
+for model in models:
+    print(f"{model.provider}/{model.model_id}: {model.display_name}")
+
+# Generate an image
+result = client.media.generate(
+    provider="fal",
+    media_type="image",
+    model="fal-ai/flux/schnell",
+    prompt="A futuristic cityscape at sunset",
+    config={"width": 1024, "height": 768},
+)
+print(result.url)
+
+# List assets
+assets = client.assets.list(type="image")
+for asset in assets.data:
+    print(f"{asset.file_name} ({asset.mime_type})")
+
+# Get a signed download URL
+signed = client.assets.get_signed_url(asset_id="asset-id")
+print(signed.url)
+
+# Delete an asset
+client.assets.delete(asset_id="asset-id")
+```
 
 ## Configuration
 

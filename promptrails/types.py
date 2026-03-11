@@ -816,6 +816,72 @@ class WebhookTriggerCreateResponse:
         return _from_dict(cls, data)
 
 
+# --- Media ---
+
+
+@dataclass
+class MediaModel:
+    id: str = ""
+    provider: str = ""
+    model_id: str = ""
+    display_name: str = ""
+    media_type: str = ""
+    is_active: bool = True
+    capabilities: Dict[str, Any] = field(default_factory=dict)
+    config_schema: Optional[Dict[str, Any]] = None
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "MediaModel":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class MediaGenerateResult:
+    asset_id: str = ""
+    url: str = ""
+    media_type: str = ""
+    provider: str = ""
+    model: str = ""
+    duration_ms: Optional[int] = None
+    cost: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "MediaGenerateResult":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class Asset:
+    id: str = ""
+    workspace_id: str = ""
+    type: str = ""
+    provider: str = ""
+    model: str = ""
+    file_name: str = ""
+    file_size: Optional[int] = None
+    mime_type: str = ""
+    storage_path: str = ""
+    execution_id: Optional[str] = None
+    agent_id: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    created_at: str = ""
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Asset":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class AssetSignedURL:
+    url: str = ""
+    expires_at: str = ""
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "AssetSignedURL":
+        return _from_dict(cls, data)
+
+
 @dataclass
 class A2AAgentCapabilities:
     streaming: bool = False

@@ -1,6 +1,7 @@
 from .a2a import A2AResource, AsyncA2AResource
 from .agents import AgentsResource, AsyncAgentsResource
 from .approvals import ApprovalsResource, AsyncApprovalsResource
+from .assets import AssetsResource, AsyncAssetsResource
 from .chat import AsyncChatResource, ChatResource
 from .costs import AsyncCostsResource, CostsResource
 from .credentials import AsyncCredentialsResource, CredentialsResource
@@ -9,6 +10,8 @@ from .data_sources import AsyncDataSourcesResource, DataSourcesResource
 from .executions import AsyncExecutionsResource, ExecutionsResource
 from .guardrails import AsyncGuardrailsResource, GuardrailsResource
 from .llm_models import AsyncLLMModelsResource, LLMModelsResource
+from .media import AsyncMediaResource, MediaResource
+from .media_models import AsyncMediaModelsResource, MediaModelsResource
 from .mcp_templates import AsyncMCPTemplatesResource, MCPTemplatesResource
 from .mcp_tools import AsyncMCPToolsResource, MCPToolsResource
 from .memories import AsyncMemoriesResource, MemoriesResource
@@ -23,9 +26,11 @@ __all__ = [
     "A2AResource",
     "AgentsResource",
     "ApprovalsResource",
+    "AssetsResource",
     "AsyncA2AResource",
     "AsyncAgentsResource",
     "AsyncApprovalsResource",
+    "AsyncAssetsResource",
     "AsyncChatResource",
     "AsyncCostsResource",
     "AsyncCredentialsResource",
@@ -34,6 +39,8 @@ __all__ = [
     "AsyncExecutionsResource",
     "AsyncGuardrailsResource",
     "AsyncLLMModelsResource",
+    "AsyncMediaModelsResource",
+    "AsyncMediaResource",
     "AsyncMCPTemplatesResource",
     "AsyncMCPToolsResource",
     "AsyncMemoriesResource",
@@ -51,6 +58,8 @@ __all__ = [
     "ExecutionsResource",
     "GuardrailsResource",
     "LLMModelsResource",
+    "MediaModelsResource",
+    "MediaResource",
     "MCPTemplatesResource",
     "MCPToolsResource",
     "MemoriesResource",

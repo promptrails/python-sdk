@@ -6,6 +6,7 @@ from .resources import (
     A2AResource,
     AgentsResource,
     ApprovalsResource,
+    AssetsResource,
     ChatResource,
     CostsResource,
     CredentialsResource,
@@ -16,6 +17,8 @@ from .resources import (
     LLMModelsResource,
     MCPTemplatesResource,
     MCPToolsResource,
+    MediaModelsResource,
+    MediaResource,
     MemoriesResource,
     PromptsResource,
     ScoresResource,
@@ -65,6 +68,9 @@ class PromptRails:
         self.sessions = SessionsResource(self._http)
         self.a2a = A2AResource(self._http)
         self.webhook_triggers = WebhookTriggersResource(self._http)
+        self.media_models = MediaModelsResource(self._http)
+        self.media = MediaResource(self._http)
+        self.assets = AssetsResource(self._http)
 
     def close(self):
         """Close the underlying HTTP client."""

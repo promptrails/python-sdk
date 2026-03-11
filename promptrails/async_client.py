@@ -6,6 +6,7 @@ from .resources import (
     AsyncA2AResource,
     AsyncAgentsResource,
     AsyncApprovalsResource,
+    AsyncAssetsResource,
     AsyncChatResource,
     AsyncCostsResource,
     AsyncCredentialsResource,
@@ -16,6 +17,8 @@ from .resources import (
     AsyncLLMModelsResource,
     AsyncMCPTemplatesResource,
     AsyncMCPToolsResource,
+    AsyncMediaModelsResource,
+    AsyncMediaResource,
     AsyncMemoriesResource,
     AsyncPromptsResource,
     AsyncScoresResource,
@@ -65,6 +68,9 @@ class AsyncPromptRails:
         self.sessions = AsyncSessionsResource(self._http)
         self.a2a = AsyncA2AResource(self._http)
         self.webhook_triggers = AsyncWebhookTriggersResource(self._http)
+        self.media_models = AsyncMediaModelsResource(self._http)
+        self.media = AsyncMediaResource(self._http)
+        self.assets = AsyncAssetsResource(self._http)
 
     async def close(self):
         """Close the underlying HTTP client."""
