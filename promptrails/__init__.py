@@ -1,5 +1,28 @@
 """PromptRails Python SDK."""
 
+from ._sse import (
+    ContentEvent,
+    DoneEvent,
+    ErrorEvent,
+    ExecutionEvent,
+    StreamEvent,
+    ThinkingEvent,
+    TokenUsage,
+    ToolEndEvent,
+    ToolStartEvent,
+)
+from ._version import VERSION
+from .agent_config import (
+    AgentConfig,
+    ChainAgentConfig,
+    CompositeAgentConfig,
+    CompositeStep,
+    MultiAgentConfig,
+    PromptLink,
+    SimpleAgentConfig,
+    WorkflowAgentConfig,
+    WorkflowNode,
+)
 from .async_client import AsyncPromptRails
 from .client import PromptRails
 from .exceptions import (
@@ -48,10 +71,11 @@ from .types import (
     Trace,
 )
 
-__version__ = "0.1.0"
+__version__ = VERSION
 
 __all__ = [
     "Agent",
+    "AgentConfig",
     "AgentExecution",
     "AgentMemory",
     "AgentVersion",
@@ -63,10 +87,17 @@ __all__ = [
     "AvailableModelGroup",
     "ChatMessage",
     "ChatSession",
+    "ChainAgentConfig",
+    "CompositeAgentConfig",
+    "CompositeStep",
+    "ContentEvent",
     "CostSummary",
     "Credential",
     "DataSource",
     "DataSourceVersion",
+    "DoneEvent",
+    "ErrorEvent",
+    "ExecutionEvent",
     "ExecutionResult",
     "FlowTemplate",
     "ForbiddenError",
@@ -82,17 +113,28 @@ __all__ = [
     "MCPToolCallContent",
     "MediaGenerateResult",
     "MediaModel",
+    "MultiAgentConfig",
     "NotFoundError",
     "PaginatedResponse",
     "PaginationMeta",
     "Prompt",
+    "PromptLink",
     "PromptRails",
     "PromptRailsError",
     "PromptVersion",
     "RateLimitError",
     "RunPromptResponse",
     "ServerError",
+    "SimpleAgentConfig",
+    "StreamEvent",
+    "ThinkingEvent",
+    "TokenUsage",
+    "ToolEndEvent",
+    "ToolStartEvent",
     "Trace",
     "UnauthorizedError",
+    "VERSION",
     "ValidationError",
+    "WorkflowAgentConfig",
+    "WorkflowNode",
 ]

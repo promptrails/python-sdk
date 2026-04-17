@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from ..agent_config import AgentConfig
 from ..pagination import PaginatedResponse
 from ..types import Agent, AgentMemory, AgentVersion, ExecutionResult, Guardrail
 from .base import AsyncBaseResource, BaseResource
@@ -80,15 +81,17 @@ class AgentsResource(BaseResource):
         agent_id: str,
         *,
         version: str,
-        config: Optional[Dict[str, Any]] = None,
+        config: AgentConfig,
         input_schema: Optional[Dict[str, Any]] = None,
         output_schema: Optional[Dict[str, Any]] = None,
         set_current: bool = False,
         message: Optional[str] = None,
     ) -> AgentVersion:
-        payload: Dict[str, Any] = {"version": version, "set_current": set_current}
-        if config is not None:
-            payload["config"] = config
+        payload: Dict[str, Any] = {
+            "version": version,
+            "set_current": set_current,
+            "config": config.to_dict(),
+        }
         if input_schema is not None:
             payload["input_schema"] = input_schema
         if output_schema is not None:
@@ -255,15 +258,17 @@ class AsyncAgentsResource(AsyncBaseResource):
         agent_id: str,
         *,
         version: str,
-        config: Optional[Dict[str, Any]] = None,
+        config: AgentConfig,
         input_schema: Optional[Dict[str, Any]] = None,
         output_schema: Optional[Dict[str, Any]] = None,
         set_current: bool = False,
         message: Optional[str] = None,
     ) -> AgentVersion:
-        payload: Dict[str, Any] = {"version": version, "set_current": set_current}
-        if config is not None:
-            payload["config"] = config
+        payload: Dict[str, Any] = {
+            "version": version,
+            "set_current": set_current,
+            "config": config.to_dict(),
+        }
         if input_schema is not None:
             payload["input_schema"] = input_schema
         if output_schema is not None:

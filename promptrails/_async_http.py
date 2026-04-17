@@ -64,3 +64,24 @@ class AsyncHTTPClient:
 
     async def delete(self, path: str, **kwargs) -> Dict[str, Any]:
         return await self.request("DELETE", path, **kwargs)
+
+    def stream(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: Optional[Dict[str, Any]] = None,
+    ):
+        """Async streaming request.
+
+        Returns the httpx async ``Response`` context manager (``async with``).
+        Iterate the body via :func:`promptrails._sse.aiter_sse`.
+        """
+        headers = {**self._config.headers, "Accept": "text/event-stream"}
+        return self._client.stream(
+            method,
+            path,
+            json=json,
+            headers=headers,
+            timeout=None,
+        )

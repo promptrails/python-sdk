@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from ._version import VERSION
+
 
 @dataclass
 class Config:
@@ -17,4 +19,5 @@ class Config:
             "X-API-Key": self.api_key,
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "User-Agent": f"promptrails-python/{VERSION}",
         }

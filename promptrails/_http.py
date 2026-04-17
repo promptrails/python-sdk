@@ -64,3 +64,27 @@ class HTTPClient:
 
     def delete(self, path: str, **kwargs) -> Dict[str, Any]:
         return self.request("DELETE", path, **kwargs)
+
+    def stream(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: Optional[Dict[str, Any]] = None,
+    ):
+        """Open a long-lived streaming request.
+
+        Returns the httpx ``Response`` context manager. Caller is expected to
+        enter it (``with http.stream(...) as resp: ...``) and read the body
+        with ``resp.iter_text()`` or via :func:`promptrails._sse.iter_sse`.
+        Retries and the short request timeout are skipped — streams are
+        long-lived by design.
+        """
+        headers = {**self._config.headers, "Accept": "text/event-stream"}
+        return self._client.stream(
+            method,
+            path,
+            json=json,
+            headers=headers,
+            timeout=None,
+        )

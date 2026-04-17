@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, AsyncIterator, Dict, Iterator, Optional
 
+from .._sse import StreamEvent, aiter_sse, iter_sse
 from ..pagination import PaginatedResponse
 from ..types import AgentExecution
 from .base import AsyncBaseResource, BaseResource
@@ -31,6 +32,19 @@ class ExecutionsResource(BaseResource):
         body = self._http.get(f"/api/v1/executions/{execution_id}")
         return AgentExecution.from_dict(self._unwrap(body))
 
+    def stream(self, execution_id: str) -> Iterator[StreamEvent]:
+        """Subscribe to the live SSE stream for an execution.
+
+        Useful when the execution was started outside a chat (e.g.
+        ``agents.execute``) and the caller wants progressive updates.
+        """
+        with self._http.stream(
+            "GET",
+            f"/api/v1/executions/{execution_id}/stream",
+        ) as response:
+            response.raise_for_status()
+            yield from iter_sse(response)
+
 
 class AsyncExecutionsResource(AsyncBaseResource):
     async def list(
@@ -55,3 +69,13 @@ class AsyncExecutionsResource(AsyncBaseResource):
     async def get(self, execution_id: str) -> AgentExecution:
         body = await self._http.get(f"/api/v1/executions/{execution_id}")
         return AgentExecution.from_dict(self._unwrap(body))
+
+    async def stream(self, execution_id: str) -> AsyncIterator[StreamEvent]:
+        """Async variant of :meth:`ExecutionsResource.stream`."""
+        async with self._http.stream(
+            "GET",
+            f"/api/v1/executions/{execution_id}/stream",
+        ) as response:
+            response.raise_for_status()
+            async for event in aiter_sse(response):
+                yield event
