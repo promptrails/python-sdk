@@ -33,7 +33,8 @@ def test_parses_full_chat_stream():
         'event: tool_start\ndata: {"id":"t1","name":"search"}\n\n'
         'event: tool_end\ndata: {"id":"t1","name":"search","summary":"3 hits"}\n\n'
         'event: content\ndata: {"content":"Hello"}\n\n'
-        'event: done\ndata: {"output":{"content":"Hello world"},"token_usage":{"total_tokens":42}}\n\n'
+        "event: done\ndata: "
+        '{"output":{"content":"Hello world"},"token_usage":{"total_tokens":42}}\n\n'
     )
     events = _parse(body)
     assert len(events) == 6

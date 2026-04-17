@@ -13,7 +13,6 @@ from typing import Any, AsyncIterator, Dict, Iterator, Optional, Union
 
 import httpx
 
-
 # === Typed stream events ===
 
 

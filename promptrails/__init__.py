@@ -74,6 +74,7 @@ from .types import (
 __version__ = VERSION
 
 __all__ = [
+    "VERSION",
     "Agent",
     "AgentConfig",
     "AgentExecution",
@@ -85,9 +86,9 @@ __all__ = [
     "AsyncPromptRails",
     "AvailableModelEntry",
     "AvailableModelGroup",
+    "ChainAgentConfig",
     "ChatMessage",
     "ChatSession",
-    "ChainAgentConfig",
     "CompositeAgentConfig",
     "CompositeStep",
     "ContentEvent",
@@ -133,7 +134,6 @@ __all__ = [
     "ToolStartEvent",
     "Trace",
     "UnauthorizedError",
-    "VERSION",
     "ValidationError",
     "WorkflowAgentConfig",
     "WorkflowNode",
