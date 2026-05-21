@@ -81,7 +81,8 @@ except NotFoundError as e:
 | `client.scores`           | `list`, `get`, `create`, `update`, `delete`, `list_configs`, `get_config`, `create_config`, `update_config`, `delete_config`, `aggregates` |
 | `client.mcp_tools`        | `list`, `get`, `create`, `update`, `delete`                              |
 | `client.approvals`        | `list`, `get`, `decide`                                                  |
-| `client.webhook_triggers` | `list`, `get`, `create`, `update`, `delete`                              |
+| `client.agent_triggers`   | `list`, `get`, `create` (with `source` + `source_config`), `update`, `delete` |
+| `client.agent_vfs`        | `list`, `read`, `write`, `stat`, `mkdir`, `move`, `copy`, `delete`, `grep`, `glob`, `usage` |
 | `client.a2a`              | `get_agent_card`, `send_message`, `get_task`, `list_tasks`, `cancel_task` |
 | `client.media_models`     | `list`                                                                   |
 | `client.media`            | `generate`                                                               |
