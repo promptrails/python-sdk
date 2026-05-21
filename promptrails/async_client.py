@@ -5,6 +5,8 @@ from .config import Config
 from .resources import (
     AsyncA2AResource,
     AsyncAgentsResource,
+    AsyncAgentTriggersResource,
+    AsyncAgentVFSResource,
     AsyncApprovalsResource,
     AsyncAssetsResource,
     AsyncChatResource,
@@ -25,7 +27,6 @@ from .resources import (
     AsyncSessionsResource,
     AsyncTemplatesResource,
     AsyncTracesResource,
-    AsyncWebhookTriggersResource,
 )
 
 
@@ -67,7 +68,8 @@ class AsyncPromptRails:
         self.dashboard = AsyncDashboardResource(self._http)
         self.sessions = AsyncSessionsResource(self._http)
         self.a2a = AsyncA2AResource(self._http)
-        self.webhook_triggers = AsyncWebhookTriggersResource(self._http)
+        self.agent_triggers = AsyncAgentTriggersResource(self._http)
+        self.agent_vfs = AsyncAgentVFSResource(self._http)
         self.media_models = AsyncMediaModelsResource(self._http)
         self.media = AsyncMediaResource(self._http)
         self.assets = AsyncAssetsResource(self._http)

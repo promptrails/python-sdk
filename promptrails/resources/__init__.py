@@ -1,4 +1,6 @@
 from .a2a import A2AResource, AsyncA2AResource
+from .agent_triggers import AgentTriggersResource, AsyncAgentTriggersResource
+from .agent_vfs import AgentVFSResource, AsyncAgentVFSResource
 from .agents import AgentsResource, AsyncAgentsResource
 from .approvals import ApprovalsResource, AsyncApprovalsResource
 from .assets import AssetsResource, AsyncAssetsResource
@@ -20,14 +22,17 @@ from .scores import AsyncScoresResource, ScoresResource
 from .sessions import AsyncSessionsResource, SessionsResource
 from .templates import AsyncTemplatesResource, TemplatesResource
 from .traces import AsyncTracesResource, TracesResource
-from .webhook_triggers import AsyncWebhookTriggersResource, WebhookTriggersResource
 
 __all__ = [
     "A2AResource",
+    "AgentTriggersResource",
+    "AgentVFSResource",
     "AgentsResource",
     "ApprovalsResource",
     "AssetsResource",
     "AsyncA2AResource",
+    "AsyncAgentTriggersResource",
+    "AsyncAgentVFSResource",
     "AsyncAgentsResource",
     "AsyncApprovalsResource",
     "AsyncAssetsResource",
@@ -49,7 +54,6 @@ __all__ = [
     "AsyncSessionsResource",
     "AsyncTemplatesResource",
     "AsyncTracesResource",
-    "AsyncWebhookTriggersResource",
     "ChatResource",
     "CostsResource",
     "CredentialsResource",
@@ -68,5 +72,4 @@ __all__ = [
     "SessionsResource",
     "TemplatesResource",
     "TracesResource",
-    "WebhookTriggersResource",
 ]

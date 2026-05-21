@@ -5,6 +5,8 @@ from .config import Config
 from .resources import (
     A2AResource,
     AgentsResource,
+    AgentTriggersResource,
+    AgentVFSResource,
     ApprovalsResource,
     AssetsResource,
     ChatResource,
@@ -25,7 +27,6 @@ from .resources import (
     SessionsResource,
     TemplatesResource,
     TracesResource,
-    WebhookTriggersResource,
 )
 
 
@@ -67,7 +68,8 @@ class PromptRails:
         self.dashboard = DashboardResource(self._http)
         self.sessions = SessionsResource(self._http)
         self.a2a = A2AResource(self._http)
-        self.webhook_triggers = WebhookTriggersResource(self._http)
+        self.agent_triggers = AgentTriggersResource(self._http)
+        self.agent_vfs = AgentVFSResource(self._http)
         self.media_models = MediaModelsResource(self._http)
         self.media = MediaResource(self._http)
         self.assets = AssetsResource(self._http)

@@ -776,13 +776,16 @@ class A2AAgentSkill:
 
 
 @dataclass
-class WebhookTrigger:
+class AgentTrigger:
     id: str = ""
     workspace_id: str = ""
     agent_id: str = ""
     name: str = ""
     token: str = ""
     token_prefix: str = ""
+    source: str = "generic"
+    source_config: Dict[str, Any] = field(default_factory=dict)
+    reply_config: Dict[str, Any] = field(default_factory=dict)
     is_active: bool = True
     has_secret: bool = False
     last_used_at: Optional[str] = None
@@ -791,18 +794,21 @@ class WebhookTrigger:
     updated_at: str = ""
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "WebhookTrigger":
+    def from_dict(cls, data: Dict[str, Any]) -> "AgentTrigger":
         return _from_dict(cls, data)
 
 
 @dataclass
-class WebhookTriggerCreateResponse:
+class AgentTriggerCreateResponse:
     id: str = ""
     workspace_id: str = ""
     agent_id: str = ""
     name: str = ""
     token: str = ""
     token_prefix: str = ""
+    source: str = "generic"
+    source_config: Dict[str, Any] = field(default_factory=dict)
+    reply_config: Dict[str, Any] = field(default_factory=dict)
     is_active: bool = True
     has_secret: bool = False
     last_used_at: Optional[str] = None
@@ -812,7 +818,40 @@ class WebhookTriggerCreateResponse:
     secret: Optional[str] = None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "WebhookTriggerCreateResponse":
+    def from_dict(cls, data: Dict[str, Any]) -> "AgentTriggerCreateResponse":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class AgentVFSFile:
+    id: str = ""
+    workspace_id: str = ""
+    agent_id: str = ""
+    path: str = ""
+    parent_path: str = ""
+    name: str = ""
+    is_dir: bool = False
+    content: str = ""
+    size_bytes: int = 0
+    mime_type: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    last_writer_kind: str = "user"
+    created_at: str = ""
+    updated_at: str = ""
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "AgentVFSFile":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class AgentVFSGrepMatch:
+    path: str = ""
+    line_number: int = 0
+    line: str = ""
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "AgentVFSGrepMatch":
         return _from_dict(cls, data)
 
 
