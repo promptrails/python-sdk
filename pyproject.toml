@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "promptrails"
-version = "0.6.0"
+version = "0.7.0"
 description = "Official Python SDK for the PromptRails API"
 readme = "README.md"
 license = {text = "MIT"}
@@ -37,6 +37,8 @@ dev = [
 ]
 langchain = ["langchain-core>=0.2"]
 openai = ["openai>=1.0"]
+anthropic = ["anthropic>=0.40"]
+google = ["google-genai>=0.3"]
 otel = ["opentelemetry-sdk>=1.20"]
 
 [project.urls]

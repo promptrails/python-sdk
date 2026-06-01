@@ -4,7 +4,7 @@ Auto-instrument popular frameworks so their calls become PromptRails spans. Each
 integration only needs its own optional dependency.
 
 ```bash
-pip install "promptrails[langchain]"   # or [openai], or [otel]
+pip install "promptrails[langchain]"   # or [openai], [anthropic], [google], [otel]
 ```
 
 ## LangChain
@@ -43,6 +43,35 @@ client.chat.completions.create(model="gpt-4o", messages=[{"role": "user", "conte
 ```
 
 The wrapper is duck-typed, so it also works with any API-compatible client.
+
+## Anthropic
+
+Wrap an Anthropic client to trace every `messages.create` call:
+
+```python
+from anthropic import Anthropic
+from promptrails.tracing.integrations.anthropic import trace_anthropic
+
+client = trace_anthropic(Anthropic(), tracer)
+client.messages.create(model="claude-sonnet-4-5", max_tokens=1024, messages=[...])
+```
+
+Install with `pip install "promptrails[anthropic]"`.
+
+## Google GenAI
+
+Wrap a Google GenAI client (the unified `google-genai` SDK) to trace every
+`models.generate_content` call:
+
+```python
+from google import genai
+from promptrails.tracing.integrations.google import trace_google
+
+client = trace_google(genai.Client(), tracer)
+client.models.generate_content(model="gemini-2.0-flash", contents="Hello")
+```
+
+Install with `pip install "promptrails[google]"`.
 
 ## OpenTelemetry
 

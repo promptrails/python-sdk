@@ -1,5 +1,8 @@
-"""OpenAI / Anthropic integration — wrap a client so each completion call is
-traced automatically (model, token usage, latency, output).
+"""OpenAI integration — wrap a client so each chat completion call is traced
+automatically (model, token usage, latency, output).
+
+For the Anthropic and Google GenAI SDKs, see the sibling ``anthropic`` and
+``google`` integration modules.
 
 Usage::
 
