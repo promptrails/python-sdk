@@ -26,7 +26,7 @@ tracer.flush()
 The tree is built from LangChain's `run_id`/`parent_run_id`, so it is correct
 under threads and async runs. Token usage and model are read from `on_llm_end`.
 
-## OpenAI / Anthropic
+## OpenAI
 
 Wrap an OpenAI-compatible client so every `chat.completions.create` call emits an
 `llm` span with model, token usage, latency, and output:
