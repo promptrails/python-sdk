@@ -65,6 +65,9 @@ class TokenUsage:
     prompt_tokens: Optional[int] = None
     completion_tokens: Optional[int] = None
     total_tokens: Optional[int] = None
+    cached_tokens: Optional[int] = None
+    cache_creation_tokens: Optional[int] = None
+    reasoning_tokens: Optional[int] = None
 
 
 @dataclass
@@ -140,6 +143,9 @@ def _parse_frame(event_name: str, data: str) -> Optional[StreamEvent]:
                 prompt_tokens=usage.get("prompt_tokens"),
                 completion_tokens=usage.get("completion_tokens"),
                 total_tokens=usage.get("total_tokens"),
+                cached_tokens=usage.get("cached_tokens"),
+                cache_creation_tokens=usage.get("cache_creation_tokens"),
+                reasoning_tokens=usage.get("reasoning_tokens"),
             ),
         )
     if event_name == "error":

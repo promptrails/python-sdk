@@ -65,12 +65,23 @@ class LLMModel:
     display_name: str = ""
     input_price: Optional[float] = None
     output_price: Optional[float] = None
+    cached_input_price: Optional[float] = None
     max_tokens: Optional[int] = None
     supports_vision: bool = False
     supports_tools: bool = False
     supports_json: bool = False
     supports_streaming: bool = False
+    supports_temperature: bool = False
+    supports_top_p: bool = False
+    supports_top_k: bool = False
+    supports_reasoning: bool = False
+    supports_web_search: bool = False
+    supports_prompt_caching: bool = False
     is_active: bool = True
+    is_deprecated: bool = False
+    deprecated_at: Optional[str] = None
+    created_at: str = ""
+    updated_at: str = ""
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "LLMModel":
@@ -99,8 +110,15 @@ class AvailableModelEntry:
     supports_vision: bool = False
     supports_tools: bool = False
     supports_json: bool = False
+    supports_temperature: bool = False
+    supports_top_p: bool = False
+    supports_top_k: bool = False
+    supports_reasoning: bool = False
+    supports_web_search: bool = False
+    supports_prompt_caching: bool = False
     input_price: Optional[float] = None
     output_price: Optional[float] = None
+    is_deprecated: bool = False
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "AvailableModelEntry":
@@ -866,6 +884,8 @@ class MediaModel:
     display_name: str = ""
     media_type: str = ""
     is_active: bool = True
+    is_deprecated: bool = False
+    deprecated_at: Optional[str] = None
     capabilities: Dict[str, Any] = field(default_factory=dict)
     config_schema: Optional[Dict[str, Any]] = None
 
