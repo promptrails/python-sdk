@@ -21,7 +21,6 @@ from .resources import (
     MCPToolsResource,
     MediaModelsResource,
     MediaResource,
-    MemoriesResource,
     PromptsResource,
     ScoresResource,
     SessionsResource,
@@ -55,7 +54,6 @@ class PromptRails:
         self.credentials = CredentialsResource(self._http)
         self.data_sources = DataSourcesResource(self._http)
         self.chat = ChatResource(self._http)
-        self.memories = MemoriesResource(self._http)
         self.traces = TracesResource(self._http)
         self.costs = CostsResource(self._http)
         self.mcp_tools = MCPToolsResource(self._http)

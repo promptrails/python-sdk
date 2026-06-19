@@ -16,7 +16,6 @@ from .mcp_templates import AsyncMCPTemplatesResource, MCPTemplatesResource
 from .mcp_tools import AsyncMCPToolsResource, MCPToolsResource
 from .media import AsyncMediaResource, MediaResource
 from .media_models import AsyncMediaModelsResource, MediaModelsResource
-from .memories import AsyncMemoriesResource, MemoriesResource
 from .prompts import AsyncPromptsResource, PromptsResource
 from .scores import AsyncScoresResource, ScoresResource
 from .sessions import AsyncSessionsResource, SessionsResource
@@ -48,7 +47,6 @@ __all__ = [
     "AsyncMCPToolsResource",
     "AsyncMediaModelsResource",
     "AsyncMediaResource",
-    "AsyncMemoriesResource",
     "AsyncPromptsResource",
     "AsyncScoresResource",
     "AsyncSessionsResource",
@@ -66,7 +64,6 @@ __all__ = [
     "MCPToolsResource",
     "MediaModelsResource",
     "MediaResource",
-    "MemoriesResource",
     "PromptsResource",
     "ScoresResource",
     "SessionsResource",

@@ -21,7 +21,6 @@ from .resources import (
     AsyncMCPToolsResource,
     AsyncMediaModelsResource,
     AsyncMediaResource,
-    AsyncMemoriesResource,
     AsyncPromptsResource,
     AsyncScoresResource,
     AsyncSessionsResource,
@@ -55,7 +54,6 @@ class AsyncPromptRails:
         self.credentials = AsyncCredentialsResource(self._http)
         self.data_sources = AsyncDataSourcesResource(self._http)
         self.chat = AsyncChatResource(self._http)
-        self.memories = AsyncMemoriesResource(self._http)
         self.traces = AsyncTracesResource(self._http)
         self.costs = AsyncCostsResource(self._http)
         self.mcp_tools = AsyncMCPToolsResource(self._http)

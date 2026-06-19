@@ -39,7 +39,6 @@ class TestClient:
         assert client.credentials is not None
         assert client.data_sources is not None
         assert client.chat is not None
-        assert client.memories is not None
         assert client.traces is not None
         assert client.costs is not None
         assert client.mcp_tools is not None

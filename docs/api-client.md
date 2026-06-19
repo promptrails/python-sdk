@@ -31,7 +31,7 @@ except NotFoundError as e:
 
 | Resource                  | Methods                                                                  |
 | ------------------------- | ------------------------------------------------------------------------ |
-| `client.agents`           | `list`, `get`, `create`, `update`, `delete`, `execute`, `list_versions`, `create_version`, `list_guardrails`, `create_guardrail`, `list_memories`, `create_memory`, `search_memories`, `delete_all_memories` |
+| `client.agents`           | `list`, `get`, `create`, `update`, `delete`, `execute`, `list_versions`, `create_version`, `list_guardrails`, `create_guardrail` |
 | `client.prompts`          | `list`, `get`, `create`, `update`, `delete`, `list_versions`, `create_version` |
 | `client.executions`       | `list`, `get`                                                            |
 | `client.credentials`      | `list`, `get`, `create`, `update`, `delete`, `set_default`, `check_connection` |

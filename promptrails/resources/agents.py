@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from ..agent_config import AgentConfig
 from ..pagination import PaginatedResponse
-from ..types import Agent, AgentMemory, AgentVersion, ExecutionResult, Guardrail
+from ..types import Agent, AgentVersion, ExecutionResult, Guardrail
 from .base import AsyncBaseResource, BaseResource
 
 
@@ -138,54 +138,6 @@ class AgentsResource(BaseResource):
         body = self._http.post(f"/api/v1/agents/{agent_id}/guardrails", json=payload)
         return Guardrail.from_dict(self._unwrap(body))
 
-    def list_memories(
-        self, agent_id: str, *, page: int = 1, limit: int = 20
-    ) -> PaginatedResponse[AgentMemory]:
-        body = self._http.get(
-            f"/api/v1/agents/{agent_id}/memories", params={"page": page, "limit": limit}
-        )
-        return PaginatedResponse.from_response(body, AgentMemory.from_dict)
-
-    def create_memory(
-        self,
-        agent_id: str,
-        *,
-        content: str,
-        memory_type: str,
-        importance: Optional[float] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        chat_session_id: Optional[str] = None,
-    ) -> AgentMemory:
-        payload: Dict[str, Any] = {"content": content, "memory_type": memory_type}
-        if importance is not None:
-            payload["importance"] = importance
-        if metadata is not None:
-            payload["metadata"] = metadata
-        if chat_session_id is not None:
-            payload["chat_session_id"] = chat_session_id
-        body = self._http.post(f"/api/v1/agents/{agent_id}/memories", json=payload)
-        return AgentMemory.from_dict(self._unwrap(body))
-
-    def search_memories(
-        self,
-        agent_id: str,
-        *,
-        query: str,
-        threshold: Optional[float] = None,
-        limit: Optional[int] = None,
-    ) -> List[AgentMemory]:
-        payload: Dict[str, Any] = {"query": query}
-        if threshold is not None:
-            payload["threshold"] = threshold
-        if limit is not None:
-            payload["limit"] = limit
-        body = self._http.post(f"/api/v1/agents/{agent_id}/memories/search", json=payload)
-        data = self._unwrap(body)
-        return [AgentMemory.from_dict(m) for m in (data if isinstance(data, list) else [])]
-
-    def delete_all_memories(self, agent_id: str) -> None:
-        self._http.delete(f"/api/v1/agents/{agent_id}/memories")
-
 
 class AsyncAgentsResource(AsyncBaseResource):
     async def list(
@@ -316,51 +268,3 @@ class AsyncAgentsResource(AsyncBaseResource):
             payload["config"] = config
         body = await self._http.post(f"/api/v1/agents/{agent_id}/guardrails", json=payload)
         return Guardrail.from_dict(self._unwrap(body))
-
-    async def list_memories(
-        self, agent_id: str, *, page: int = 1, limit: int = 20
-    ) -> PaginatedResponse[AgentMemory]:
-        body = await self._http.get(
-            f"/api/v1/agents/{agent_id}/memories", params={"page": page, "limit": limit}
-        )
-        return PaginatedResponse.from_response(body, AgentMemory.from_dict)
-
-    async def create_memory(
-        self,
-        agent_id: str,
-        *,
-        content: str,
-        memory_type: str,
-        importance: Optional[float] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        chat_session_id: Optional[str] = None,
-    ) -> AgentMemory:
-        payload: Dict[str, Any] = {"content": content, "memory_type": memory_type}
-        if importance is not None:
-            payload["importance"] = importance
-        if metadata is not None:
-            payload["metadata"] = metadata
-        if chat_session_id is not None:
-            payload["chat_session_id"] = chat_session_id
-        body = await self._http.post(f"/api/v1/agents/{agent_id}/memories", json=payload)
-        return AgentMemory.from_dict(self._unwrap(body))
-
-    async def search_memories(
-        self,
-        agent_id: str,
-        *,
-        query: str,
-        threshold: Optional[float] = None,
-        limit: Optional[int] = None,
-    ) -> List[AgentMemory]:
-        payload: Dict[str, Any] = {"query": query}
-        if threshold is not None:
-            payload["threshold"] = threshold
-        if limit is not None:
-            payload["limit"] = limit
-        body = await self._http.post(f"/api/v1/agents/{agent_id}/memories/search", json=payload)
-        data = self._unwrap(body)
-        return [AgentMemory.from_dict(m) for m in (data if isinstance(data, list) else [])]
-
-    async def delete_all_memories(self, agent_id: str) -> None:
-        await self._http.delete(f"/api/v1/agents/{agent_id}/memories")

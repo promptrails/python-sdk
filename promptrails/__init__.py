@@ -38,7 +38,6 @@ from .pagination import PaginatedResponse, PaginationMeta
 from .types import (
     Agent,
     AgentExecution,
-    AgentMemory,
     AgentTrigger,
     AgentTriggerCreateResponse,
     AgentVersion,
@@ -82,7 +81,6 @@ __all__ = [
     "Agent",
     "AgentConfig",
     "AgentExecution",
-    "AgentMemory",
     "AgentTrigger",
     "AgentTriggerCreateResponse",
     "AgentVFSFile",

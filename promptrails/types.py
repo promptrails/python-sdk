@@ -317,30 +317,6 @@ class ChatSession:
         return _from_dict(cls, data)
 
 
-# --- Memory ---
-
-
-@dataclass
-class AgentMemory:
-    id: str = ""
-    workspace_id: str = ""
-    agent_id: str = ""
-    content: str = ""
-    metadata: Optional[Dict[str, Any]] = None
-    memory_type: str = ""
-    importance: float = 0.5
-    access_count: int = 0
-    last_accessed_at: Optional[str] = None
-    chat_session_id: Optional[str] = None
-    created_by_id: Optional[str] = None
-    created_at: str = ""
-    updated_at: str = ""
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AgentMemory":
-        return _from_dict(cls, data)
-
-
 # --- Trace ---
 
 
