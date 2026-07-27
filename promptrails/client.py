@@ -7,24 +7,16 @@ from .resources import (
     AgentsResource,
     AgentTriggersResource,
     AgentVFSResource,
-    ApprovalsResource,
     AssetsResource,
     ChatResource,
-    CostsResource,
     CredentialsResource,
-    DashboardResource,
     DataSourcesResource,
     ExecutionsResource,
     GuardrailsResource,
     LLMModelsResource,
     MCPTemplatesResource,
     MCPToolsResource,
-    MediaModelsResource,
-    MediaResource,
     PromptsResource,
-    ScoresResource,
-    SessionsResource,
-    TemplatesResource,
     TracesResource,
 )
 
@@ -55,21 +47,13 @@ class PromptRails:
         self.data_sources = DataSourcesResource(self._http)
         self.chat = ChatResource(self._http)
         self.traces = TracesResource(self._http)
-        self.costs = CostsResource(self._http)
         self.mcp_tools = MCPToolsResource(self._http)
         self.mcp_templates = MCPTemplatesResource(self._http)
         self.guardrails = GuardrailsResource(self._http)
         self.llm_models = LLMModelsResource(self._http)
-        self.approvals = ApprovalsResource(self._http)
-        self.templates = TemplatesResource(self._http)
-        self.scores = ScoresResource(self._http)
-        self.dashboard = DashboardResource(self._http)
-        self.sessions = SessionsResource(self._http)
         self.a2a = A2AResource(self._http)
         self.agent_triggers = AgentTriggersResource(self._http)
         self.agent_vfs = AgentVFSResource(self._http)
-        self.media_models = MediaModelsResource(self._http)
-        self.media = MediaResource(self._http)
         self.assets = AssetsResource(self._http)
 
     def close(self):

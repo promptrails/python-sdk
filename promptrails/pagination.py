@@ -28,6 +28,7 @@ class PaginatedResponse(Generic[T]):
             total=meta_raw.get("total", 0),
             page=meta_raw.get("page", 1),
             limit=meta_raw.get("limit", 20),
-            pages=meta_raw.get("total_pages", 0),
+            # API v2 standardizes on ``pages``; older payloads used ``total_pages``.
+            pages=meta_raw.get("pages", meta_raw.get("total_pages", 0)),
         )
         return cls(data=items, meta=meta)

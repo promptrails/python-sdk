@@ -26,17 +26,6 @@ def _page(items):
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_async_costs_summary():
-    respx.get(f"{BASE}/api/v1/costs/summary").mock(
-        return_value=_ok({"data": {"total_tokens": 100}})
-    )
-    async with _client() as c:
-        summary = await c.costs.get_summary()
-    assert summary.total_tokens == 100
-
-
-@pytest.mark.asyncio
-@respx.mock
 async def test_async_a2a_card_and_cancel():
     respx.get(f"{BASE}/a2a/agents/ag1/agent-card.json").mock(return_value=_ok({"name": "Card"}))
     respx.post(f"{BASE}/a2a/tasks/cancel").mock(
@@ -101,27 +90,11 @@ async def test_async_assets():
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_async_scores_crud():
-    respx.get(f"{BASE}/api/v1/scores").mock(return_value=_page([{"id": "s1"}]))
-    respx.get(f"{BASE}/api/v1/scores/s1").mock(
-        return_value=_ok({"data": {"id": "s1", "value": 0.9}})
+async def test_async_traces_summary():
+    respx.get(f"{BASE}/api/v1/traces/summary").mock(
+        return_value=_ok({"data": {"total_traces": 5, "total_cost": 0.02}})
     )
-    respx.post(f"{BASE}/api/v1/scores").mock(return_value=_ok({"data": {"id": "s1"}}))
-    respx.patch(f"{BASE}/api/v1/scores/s1").mock(
-        return_value=_ok({"data": {"id": "s1", "value": 0.5}})
-    )
-    respx.delete(f"{BASE}/api/v1/scores/s1").mock(return_value=_ok({}))
-    respx.get(f"{BASE}/api/v1/scores/aggregates").mock(
-        return_value=_ok({"data": [{"name": "acc", "count": 3}]})
-    )
-
     async with _client() as c:
-        assert len((await c.scores.list()).data) == 1
-        assert (await c.scores.get("s1")).value == 0.9
-        created = await c.scores.create(trace_id="tr1", name="acc", value=1.0)
-        assert created.id == "s1"
-        updated = await c.scores.update("s1", value=0.5)
-        assert updated.value == 0.5
-        await c.scores.delete("s1")
-        aggs = await c.scores.get_aggregates()
-    assert aggs[0].count == 3
+        summary = await c.traces.get_summary(session_id="sess1")
+    assert summary.total_traces == 5
+    assert summary.total_cost == 0.02

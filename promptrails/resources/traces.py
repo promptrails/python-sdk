@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from ..pagination import PaginatedResponse
-from ..types import Trace
+from ..types import Trace, TraceSummary
 from .base import AsyncBaseResource, BaseResource
 
 
@@ -31,6 +31,28 @@ class TracesResource(BaseResource):
             Trace.from_dict(t) for t in (data if isinstance(data, list) else [data] if data else [])
         ]
 
+    def get_summary(self, **filters: Any) -> TraceSummary:
+        """Aggregate statistics over a filtered set of traces.
+
+        Accepts the same filters as ``list`` plus ``date_from`` / ``date_to``,
+        ``status``, ``level``, ``model_name``, ``agent_id``, ``session_id``,
+        ``execution_id`` and similar query parameters.
+        """
+        params = {k: v for k, v in filters.items() if v is not None}
+        body = self._http.get("/api/v1/traces/summary", params=params)
+        return TraceSummary.from_dict(self._unwrap(body))
+
+    def pii_report(self, **filters: Any) -> Dict[str, Any]:
+        """PII-masking report over a filtered set of traces."""
+        params = {k: v for k, v in filters.items() if v is not None}
+        body = self._http.get("/api/v1/traces/pii-report", params=params)
+        return self._unwrap(body)
+
+    def ingest(self, spans: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Ingest up to 1000 raw spans in one request."""
+        body = self._http.post("/api/v1/traces/ingest", json={"spans": spans})
+        return self._unwrap(body)
+
 
 class AsyncTracesResource(AsyncBaseResource):
     async def list(
@@ -55,3 +77,20 @@ class AsyncTracesResource(AsyncBaseResource):
         return [
             Trace.from_dict(t) for t in (data if isinstance(data, list) else [data] if data else [])
         ]
+
+    async def get_summary(self, **filters: Any) -> TraceSummary:
+        """Async variant of :meth:`TracesResource.get_summary`."""
+        params = {k: v for k, v in filters.items() if v is not None}
+        body = await self._http.get("/api/v1/traces/summary", params=params)
+        return TraceSummary.from_dict(self._unwrap(body))
+
+    async def pii_report(self, **filters: Any) -> Dict[str, Any]:
+        """Async variant of :meth:`TracesResource.pii_report`."""
+        params = {k: v for k, v in filters.items() if v is not None}
+        body = await self._http.get("/api/v1/traces/pii-report", params=params)
+        return self._unwrap(body)
+
+    async def ingest(self, spans: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Ingest up to 1000 raw spans in one request."""
+        body = await self._http.post("/api/v1/traces/ingest", json={"spans": spans})
+        return self._unwrap(body)

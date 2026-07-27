@@ -158,7 +158,7 @@ def test_agent_triggers_crud():
         c.agent_triggers.delete("t1")
 
 
-# --------------- Traces / Approvals / Dashboard / LLM models ---------------
+# --------------- Traces / Execution approvals / LLM models ---------------
 
 
 @respx.mock
@@ -174,29 +174,55 @@ def test_traces():
 
 
 @respx.mock
-def test_approvals():
-    respx.get(f"{BASE}/api/v1/approvals").mock(return_value=_page([{"id": "ap1"}]))
-    respx.get(f"{BASE}/api/v1/approvals/ap1").mock(return_value=_ok({"data": {"id": "ap1"}}))
-    decide = respx.post(f"{BASE}/api/v1/approvals/ap1/decide").mock(
-        return_value=_ok({"data": {"id": "ap1"}})
+def test_execution_approvals():
+    respx.get(f"{BASE}/api/v1/executions/approval-inbox").mock(
+        return_value=_page([{"id": "e1", "status": "waiting_approval"}])
+    )
+    approve = respx.post(f"{BASE}/api/v1/executions/e1/approve").mock(
+        return_value=_ok({"data": {"id": "e1", "status": "running"}})
+    )
+    deny = respx.post(f"{BASE}/api/v1/executions/e1/deny").mock(
+        return_value=_ok({"data": {"id": "e1", "status": "rejected"}})
+    )
+    cancel = respx.post(f"{BASE}/api/v1/executions/e1/cancel").mock(
+        return_value=_ok({"data": {"id": "e1", "status": "cancel_requested"}})
     )
     with _client() as c:
-        assert len(c.approvals.list().data) == 1
-        assert c.approvals.get("ap1").id == "ap1"
-        c.approvals.decide("ap1", decision="approved")
-    assert decide.called
+        inbox = c.executions.approval_inbox()
+        assert inbox.data[0].status == "waiting_approval"
+        assert c.executions.approve("e1").status == "running"
+        assert c.executions.deny("e1", reason="nope").status == "rejected"
+        assert c.executions.cancel("e1").status == "cancel_requested"
+    assert approve.called and deny.called and cancel.called
+    assert b'"reason"' in deny.calls.last.request.read()
 
 
 @respx.mock
-def test_dashboard_and_llm_models():
-    respx.get(f"{BASE}/api/v1/dashboard/metrics").mock(
-        return_value=_ok({"data": {"total_executions": 7}})
+def test_execution_tree():
+    respx.get(f"{BASE}/api/v1/executions/e1/tree").mock(
+        return_value=_ok(
+            {
+                "data": {
+                    "id": "e1",
+                    "status": "completed",
+                    "children": [{"id": "e2", "parent_execution_id": "e1"}],
+                }
+            }
+        )
     )
+    with _client() as c:
+        root = c.executions.tree("e1")
+    assert root.id == "e1"
+    assert len(root.children) == 1
+    assert root.children[0].parent_execution_id == "e1"
+
+
+@respx.mock
+def test_llm_models():
     respx.get(f"{BASE}/api/v1/llm-models").mock(return_value=_page([{"id": "gpt-4o"}]))
     respx.get(f"{BASE}/api/v1/llm-models/available").mock(
         return_value=_ok({"data": {"groups": []}})
     )
     with _client() as c:
-        c.dashboard.get_metrics(days=7)
         assert len(c.llm_models.list().data) == 1
         c.llm_models.list_available()

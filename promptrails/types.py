@@ -12,6 +12,10 @@ def _from_dict(cls, data: Dict[str, Any]):
     return cls(**{k: v for k, v in data.items() if k in known})
 
 
+def _strip_none(d: Dict[str, Any]) -> Dict[str, Any]:
+    return {k: v for k, v in d.items() if v is not None}
+
+
 # --- Agent ---
 
 
@@ -25,6 +29,16 @@ class AgentVersion:
     output_schema: Optional[Dict[str, Any]] = None
     is_current: bool = False
     message: str = ""
+    # Version-scoped model/runtime ownership (API v2).
+    model_config: Optional[Dict[str, Any]] = None
+    run_budget: Optional[Dict[str, Any]] = None
+    approval_policy: Optional[Dict[str, Any]] = None
+    cache_timeout: Optional[int] = None
+    vfs_enabled: Optional[bool] = None
+    masking_enabled: Optional[bool] = None
+    tools: List[Dict[str, Any]] = field(default_factory=list)
+    sub_agents: List[Dict[str, Any]] = field(default_factory=list)
+    guardrails: List[Dict[str, Any]] = field(default_factory=list)
     created_at: str = ""
 
     @classmethod
@@ -89,19 +103,6 @@ class LLMModel:
 
 
 @dataclass
-class RunPromptResponse:
-    content: str = ""
-    token_usage: Dict[str, Any] = field(default_factory=dict)
-    cost: float = 0.0
-    duration_ms: int = 0
-    model: str = ""
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "RunPromptResponse":
-        return _from_dict(cls, data)
-
-
-@dataclass
 class AvailableModelEntry:
     id: str = ""
     model_id: str = ""
@@ -140,33 +141,26 @@ class AvailableModelGroup:
 
 @dataclass
 class PromptVersion:
+    """A content-only prompt version (API v2).
+
+    Model, sampling, tools, output schema and cache TTL live on the agent
+    version, not on the prompt — a prompt carries no model configuration.
+    """
+
     id: str = ""
     prompt_id: str = ""
     version: str = ""
     system_prompt: str = ""
     user_prompt: str = ""
-    llm_model_id: Optional[str] = None
-    fallback_llm_model_id: Optional[str] = None
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
-    top_p: Optional[float] = None
     input_schema: Dict[str, Any] = field(default_factory=dict)
-    output_schema: Optional[Dict[str, Any]] = None
     is_current: bool = False
     config: Dict[str, Any] = field(default_factory=dict)
     message: str = ""
     created_at: str = ""
-    llm_model: Optional[LLMModel] = None
-    fallback_llm_model: Optional[LLMModel] = None
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "PromptVersion":
-        obj = _from_dict(cls, data)
-        if data.get("llm_model"):
-            obj.llm_model = LLMModel.from_dict(data["llm_model"])
-        if data.get("fallback_llm_model"):
-            obj.fallback_llm_model = LLMModel.from_dict(data["fallback_llm_model"])
-        return obj
+        return _from_dict(cls, data)
 
 
 @dataclass
@@ -192,12 +186,22 @@ class Prompt:
 
 @dataclass
 class AgentExecution:
+    """An execution node.
+
+    API v2 executions form a tree: a sub-agent delegation, handoff continuation
+    or workflow agent-node run has ``parent_execution_id`` set and appears in its
+    parent's ``children``. Root executions have ``parent_execution_id`` ``None``.
+    ``status`` gains ``waiting_approval`` (parked at an approval-gated tool call)
+    and ``cancel_requested`` (cooperative cancel observed before finalizing).
+    """
+
     id: str = ""
     agent_id: str = ""
     agent_version_id: str = ""
     workspace_id: str = ""
     user_id: str = ""
     session_id: str = ""
+    parent_execution_id: Optional[str] = None
     status: str = ""
     input: Dict[str, Any] = field(default_factory=dict)
     output: Optional[Dict[str, Any]] = None
@@ -207,13 +211,18 @@ class AgentExecution:
     cost: float = 0.0
     duration_ms: Optional[int] = None
     trace_id: Optional[str] = None
+    approval_expires_at: Optional[str] = None
+    children: List["AgentExecution"] = field(default_factory=list)
     started_at: Optional[str] = None
     completed_at: Optional[str] = None
     created_at: str = ""
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "AgentExecution":
-        return _from_dict(cls, data)
+        obj = _from_dict(cls, data)
+        if data.get("children"):
+            obj.children = [cls.from_dict(c) for c in data["children"]]
+        return obj
 
 
 # --- Credential ---
@@ -322,6 +331,13 @@ class ChatSession:
 
 @dataclass
 class Trace:
+    """An observability span (API v2).
+
+    ``token_usage`` carries raw provider counts and, when reported, extends
+    beyond prompt/completion/total with ``cached_tokens`` (prompt-cache read
+    hits), ``cache_creation_tokens`` and ``reasoning_tokens``.
+    """
+
     id: str = ""
     workspace_id: str = ""
     trace_id: str = ""
@@ -330,24 +346,32 @@ class Trace:
     name: str = ""
     kind: str = ""
     status: str = "ok"
+    level: str = "default"
     input: Optional[Dict[str, Any]] = None
     output: Optional[Dict[str, Any]] = None
     attributes: Dict[str, Any] = field(default_factory=dict)
+    tags: List[str] = field(default_factory=list)
     token_usage: Optional[Dict[str, Any]] = None
     cost: Optional[float] = None
     duration_ms: Optional[int] = None
+    completion_start_time: Optional[str] = None
     error_message: str = ""
     error_type: str = ""
-    error_stack: str = ""
     prompt_tokens: Optional[int] = None
     completion_tokens: Optional[int] = None
     total_tokens: Optional[int] = None
+    model_name: str = ""
     agent_id: Optional[str] = None
-    prompt_id: Optional[str] = None
-    llm_model_id: Optional[str] = None
+    agent_name: str = ""
+    agent_type: str = ""
     user_id: Optional[str] = None
     session_id: str = ""
     execution_id: Optional[str] = None
+    data_source_id: Optional[str] = None
+    data_source_name: str = ""
+    prompt_name: str = ""
+    mcp_tool_name: str = ""
+    mcp_tool_type: str = ""
     service_name: str = ""
     started_at: str = ""
     ended_at: Optional[str] = None
@@ -358,18 +382,20 @@ class Trace:
         return _from_dict(cls, data)
 
 
-# --- Cost ---
-
-
 @dataclass
-class CostSummary:
-    total_cost: float = 0.0
-    total_executions: int = 0
+class TraceSummary:
+    """Aggregate statistics over a filtered set of traces (``/traces/summary``)."""
+
+    total_traces: int = 0
     total_tokens: int = 0
-    daily_costs: List[Dict[str, Any]] = field(default_factory=list)
+    total_cost: float = 0.0
+    avg_duration_ms: float = 0.0
+    error_count: int = 0
+    unique_models: int = 0
+    unique_sessions: int = 0
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "CostSummary":
+    def from_dict(cls, data: Dict[str, Any]) -> "TraceSummary":
         return _from_dict(cls, data)
 
 
@@ -523,49 +549,128 @@ class Guardrail:
         return _from_dict(cls, data)
 
 
-# --- Approval ---
-
-
 @dataclass
-class ApprovalRequest:
-    id: str = ""
-    execution_id: str = ""
-    workspace_id: str = ""
-    agent_id: Optional[str] = None
-    checkpoint_name: str = ""
-    payload: Dict[str, Any] = field(default_factory=dict)
-    status: str = "pending"
-    reason: Optional[str] = None
-    decided_by: Optional[str] = None
-    decided_at: Optional[str] = None
-    created_at: str = ""
+class GuardrailSpec:
+    """A guardrail attachment spec — the input shape used to create/attach a
+    guardrail on an agent or agent version.
+
+    ``id`` is present on responses only; omit it on create.
+    """
+
+    type: str  # "input" | "output"
+    scanner_type: str
+    action: str = "block"
+    config: Optional[Dict[str, Any]] = None
+    is_active: bool = True
+    sort_order: Optional[int] = None
+    id: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return _strip_none(
+            {
+                "id": self.id,
+                "type": self.type,
+                "scanner_type": self.scanner_type,
+                "action": self.action,
+                "config": self.config,
+                "is_active": self.is_active,
+                "sort_order": self.sort_order,
+            }
+        )
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ApprovalRequest":
+    def from_dict(cls, data: Dict[str, Any]) -> "GuardrailSpec":
         return _from_dict(cls, data)
 
 
-# --- Flow Template ---
+@dataclass
+class ScannerMeta:
+    """Metadata for an available guardrail scanner (``/guardrails/scanners``)."""
+
+    type: str = ""
+    label: str = ""
+    description: str = ""
+    category: str = ""  # "local" | "llm_guard"
+    enabled: bool = True
+    config_fields: List[str] = field(default_factory=list)
+    disabled_reason: str = ""
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ScannerMeta":
+        return _from_dict(cls, data)
+
+
+# --- Version-scoped runtime config (inputs to agents.create_version) ---
 
 
 @dataclass
-class FlowTemplate:
-    id: str = ""
-    name: str = ""
-    description: str = ""
-    category: str = ""
-    agent_type: str = ""
-    complexity: str = ""
-    tags: List[str] = field(default_factory=list)
-    icon: str = ""
-    node_count: int = 0
-    flow_config: Dict[str, Any] = field(default_factory=dict)
-    status: str = ""
-    created_at: str = ""
-    updated_at: str = ""
+class ModelConfig:
+    """Version-scoped model + sampling ownership. Every field is optional;
+    unset sampling inherits the provider/model default."""
+
+    model_id: Optional[str] = None
+    fallback_model_id: Optional[str] = None
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
+    top_k: Optional[int] = None
+    max_tokens: Optional[int] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return _strip_none(
+            {
+                "model_id": self.model_id,
+                "fallback_model_id": self.fallback_model_id,
+                "temperature": self.temperature,
+                "top_p": self.top_p,
+                "top_k": self.top_k,
+                "max_tokens": self.max_tokens,
+            }
+        )
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "FlowTemplate":
+    def from_dict(cls, data: Dict[str, Any]) -> "ModelConfig":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class RunBudget:
+    """Bounds the whole execution tree, enforced at the root. Every field is
+    optional."""
+
+    max_cost: Optional[float] = None
+    max_total_tokens: Optional[int] = None
+    max_tool_calls: Optional[int] = None
+    max_children: Optional[int] = None
+    max_depth: Optional[int] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return _strip_none(
+            {
+                "max_cost": self.max_cost,
+                "max_total_tokens": self.max_total_tokens,
+                "max_tool_calls": self.max_tool_calls,
+                "max_children": self.max_children,
+                "max_depth": self.max_depth,
+            }
+        )
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "RunBudget":
+        return _from_dict(cls, data)
+
+
+@dataclass
+class ApprovalPolicy:
+    """Who may approve/deny a parked, approval-gated call."""
+
+    mode: Optional[str] = None  # "admins" (default) | "assigned" | "any_member"
+    member_ids: Optional[List[str]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return _strip_none({"mode": self.mode, "member_ids": self.member_ids})
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ApprovalPolicy":
         return _from_dict(cls, data)
 
 
@@ -585,99 +690,6 @@ class ExecutionResult:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ExecutionResult":
-        return _from_dict(cls, data)
-
-
-# --- Score ---
-
-
-@dataclass
-class Score:
-    id: str = ""
-    workspace_id: str = ""
-    trace_id: str = ""
-    span_id: str = ""
-    name: str = ""
-    value: Optional[float] = None
-    string_value: str = ""
-    data_type: str = "numeric"
-    source: str = "manual"
-    config_id: Optional[str] = None
-    comment: str = ""
-    created_by: str = ""
-    created_at: str = ""
-    updated_at: str = ""
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Score":
-        return _from_dict(cls, data)
-
-
-@dataclass
-class ScoreConfig:
-    id: str = ""
-    workspace_id: str = ""
-    name: str = ""
-    data_type: str = "numeric"
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
-    categories: List[Dict[str, Any]] = field(default_factory=list)
-    description: str = ""
-    is_active: bool = True
-    created_at: str = ""
-    updated_at: str = ""
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ScoreConfig":
-        return _from_dict(cls, data)
-
-
-@dataclass
-class ScoreAggregate:
-    name: str = ""
-    count: int = 0
-    avg: float = 0.0
-    min: float = 0.0
-    max: float = 0.0
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ScoreAggregate":
-        return _from_dict(cls, data)
-
-
-# --- Dashboard ---
-
-
-@dataclass
-class DashboardMetrics:
-    overview: Dict[str, Any] = field(default_factory=dict)
-    executions_by_day: List[Dict[str, Any]] = field(default_factory=list)
-    cost_by_day: List[Dict[str, Any]] = field(default_factory=list)
-    agent_usage: List[Dict[str, Any]] = field(default_factory=list)
-    model_usage: List[Dict[str, Any]] = field(default_factory=list)
-    error_rate: List[Dict[str, Any]] = field(default_factory=list)
-    score_trends: List[Dict[str, Any]] = field(default_factory=list)
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "DashboardMetrics":
-        return _from_dict(cls, data)
-
-
-# --- Session & User ---
-
-
-@dataclass
-class SessionSummary:
-    session_id: str = ""
-    trace_count: int = 0
-    total_tokens: int = 0
-    total_cost: float = 0.0
-    error_count: int = 0
-    first_seen: str = ""
-    last_seen: str = ""
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "SessionSummary":
         return _from_dict(cls, data)
 
 
@@ -849,41 +861,7 @@ class AgentVFSGrepMatch:
         return _from_dict(cls, data)
 
 
-# --- Media ---
-
-
-@dataclass
-class MediaModel:
-    id: str = ""
-    provider: str = ""
-    model_id: str = ""
-    display_name: str = ""
-    media_type: str = ""
-    is_active: bool = True
-    is_deprecated: bool = False
-    deprecated_at: Optional[str] = None
-    capabilities: Dict[str, Any] = field(default_factory=dict)
-    config_schema: Optional[Dict[str, Any]] = None
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MediaModel":
-        return _from_dict(cls, data)
-
-
-@dataclass
-class MediaGenerateResult:
-    asset_id: str = ""
-    url: str = ""
-    media_type: str = ""
-    provider: str = ""
-    model: str = ""
-    duration_ms: Optional[int] = None
-    cost: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MediaGenerateResult":
-        return _from_dict(cls, data)
+# --- Asset ---
 
 
 @dataclass

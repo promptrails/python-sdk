@@ -1,8 +1,18 @@
+import json
+
 import httpx
 import pytest
 import respx
 
-from promptrails import PromptRails
+from promptrails import (
+    ModelConfig,
+    PromptAgentConfig,
+    PromptRails,
+    RunBudget,
+    ToolAttachment,
+    WorkflowAgentConfig,
+)
+from promptrails.agent_config import WorkflowNode
 from promptrails.exceptions import NotFoundError
 from promptrails.types import Agent
 
@@ -23,7 +33,7 @@ def test_list_agents():
                     {
                         "id": "a1",
                         "name": "Agent 1",
-                        "type": "simple",
+                        "type": "agent",
                         "status": "active",
                         "workspace_id": "ws",
                         "created_at": "2025-01-01T00:00:00Z",
@@ -32,7 +42,7 @@ def test_list_agents():
                     {
                         "id": "a2",
                         "name": "Agent 2",
-                        "type": "chain",
+                        "type": "workflow",
                         "status": "draft",
                         "workspace_id": "ws",
                         "created_at": "2025-01-01T00:00:00Z",
@@ -60,7 +70,7 @@ def test_get_agent():
                 "data": {
                     "id": "a1",
                     "name": "Test Agent",
-                    "type": "simple",
+                    "type": "agent",
                     "status": "active",
                     "workspace_id": "ws",
                     "created_at": "2025-01-01T00:00:00Z",
@@ -84,7 +94,7 @@ def test_create_agent():
                 "data": {
                     "id": "a3",
                     "name": "New Agent",
-                    "type": "simple",
+                    "type": "agent",
                     "status": "draft",
                     "workspace_id": "ws",
                     "created_at": "2025-01-01T00:00:00Z",
@@ -94,7 +104,7 @@ def test_create_agent():
         )
     )
     with _client() as client:
-        agent = client.agents.create(name="New Agent", type="simple")
+        agent = client.agents.create(name="New Agent", type="agent")
     assert agent.id == "a3"
     assert agent.name == "New Agent"
 
@@ -108,7 +118,7 @@ def test_update_agent():
                 "data": {
                     "id": "a1",
                     "name": "Updated",
-                    "type": "simple",
+                    "type": "agent",
                     "status": "active",
                     "workspace_id": "ws",
                     "created_at": "2025-01-01T00:00:00Z",
@@ -151,6 +161,64 @@ def test_execute_agent():
         result = client.agents.execute("a1", input={"prompt": "hi"})
     assert result.output == {"result": "hello"}
     assert result.trace_id == "t1"
+
+
+@respx.mock
+def test_create_agent_version_with_model_config():
+    route = respx.post(f"{BASE}/api/v1/agents/a1/versions").mock(
+        return_value=httpx.Response(200, json={"data": {"id": "v1", "version": "1.0.0"}})
+    )
+    with _client() as client:
+        version = client.agents.create_version(
+            "a1",
+            version="1.0.0",
+            config=PromptAgentConfig(prompt_id="p1"),
+            model_config=ModelConfig(model_id="m1", temperature=0.2),
+            run_budget=RunBudget(max_cost=1.5),
+            cache_timeout=60,
+            masking_enabled=True,
+            tools=[ToolAttachment(mcp_tool_id="t1", requires_approval=True)],
+        )
+    assert version.id == "v1"
+    body = json.loads(route.calls.last.request.read())
+    assert body["config"] == {"prompt_id": "p1", "type": "agent"}
+    assert body["model_config"] == {"model_id": "m1", "temperature": 0.2}
+    assert body["run_budget"] == {"max_cost": 1.5}
+    assert body["cache_timeout"] == 60
+    assert body["masking_enabled"] is True
+    assert body["tools"] == [{"mcp_tool_id": "t1", "requires_approval": True, "no_retry": False}]
+
+
+@respx.mock
+def test_create_workflow_version():
+    route = respx.post(f"{BASE}/api/v1/agents/a2/versions").mock(
+        return_value=httpx.Response(200, json={"data": {"id": "v2"}})
+    )
+    with _client() as client:
+        client.agents.create_version(
+            "a2",
+            version="1.0.0",
+            config=WorkflowAgentConfig(nodes=[WorkflowNode(id="n1", prompt_id="p1")]),
+        )
+    body = json.loads(route.calls.last.request.read())
+    assert body["config"]["type"] == "workflow"
+    assert body["config"]["nodes"][0]["id"] == "n1"
+
+
+@respx.mock
+def test_agent_playground():
+    route = respx.post(f"{BASE}/api/v1/agents/a1/playground").mock(
+        return_value=httpx.Response(200, json={"data": {"output": {"content": "hi"}}})
+    )
+    with _client() as client:
+        result = client.agents.playground(
+            "a1",
+            input={"q": "x"},
+            prompt_override={"system_prompt": "be terse"},
+        )
+    assert result["output"]["content"] == "hi"
+    body = json.loads(route.calls.last.request.read())
+    assert body["prompt_override"] == {"system_prompt": "be terse"}
 
 
 @respx.mock

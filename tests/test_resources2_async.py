@@ -88,15 +88,17 @@ async def test_async_chat():
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_async_approvals_triggers():
-    respx.get(f"{BASE}/api/v1/approvals").mock(return_value=_page([{"id": "ap1"}]))
-    respx.post(f"{BASE}/api/v1/approvals/ap1/decide").mock(
-        return_value=_ok({"data": {"id": "ap1"}})
+async def test_async_execution_approvals_triggers():
+    respx.get(f"{BASE}/api/v1/executions/approval-inbox").mock(
+        return_value=_page([{"id": "e1", "status": "waiting_approval"}])
+    )
+    respx.post(f"{BASE}/api/v1/executions/e1/approve").mock(
+        return_value=_ok({"data": {"id": "e1", "status": "running"}})
     )
     respx.get(f"{BASE}/api/v1/triggers").mock(return_value=_page([{"id": "t1"}]))
     respx.post(f"{BASE}/api/v1/triggers").mock(return_value=_ok({"data": {"id": "t1"}}))
     async with _client() as c:
-        assert len((await c.approvals.list()).data) == 1
-        await c.approvals.decide("ap1", decision="approved")
+        assert len((await c.executions.approval_inbox()).data) == 1
+        assert (await c.executions.approve("e1")).status == "running"
         assert len((await c.agent_triggers.list()).data) == 1
         await c.agent_triggers.create(name="t", agent_id="a1")
