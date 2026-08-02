@@ -85,7 +85,5 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from promptrails.tracing.integrations.otel import PromptRailsSpanExporter
 
 provider = TracerProvider()
-provider.add_span_processor(
-    BatchSpanProcessor(PromptRailsSpanExporter(api_key="pr_..."))
-)
+provider.add_span_processor(BatchSpanProcessor(PromptRailsSpanExporter(api_key="pr_...")))
 ```

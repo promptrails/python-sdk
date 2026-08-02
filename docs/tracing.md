@@ -57,15 +57,14 @@ is marked `error` and the exception re-raised:
 
 ```python
 with tracer.span("tool", kind="tool"):
-    raise ValueError("boom")   # span.status = "error", then the error propagates
+    raise ValueError("boom")  # span.status = "error", then the error propagates
 ```
 
 ## Decorator
 
 ```python
 @tracer.trace(kind="tool")
-def search(query: str) -> list[str]:
-    ...
+def search(query: str) -> list[str]: ...
 ```
 
 The span is named after the function (override with `@tracer.trace("custom-name")`).

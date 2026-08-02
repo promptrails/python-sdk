@@ -53,7 +53,11 @@ approval policy and cache TTL are owned by the **agent version**:
 
 ```python
 from promptrails import (
-    PromptAgentConfig, ModelConfig, RunBudget, ApprovalPolicy, ToolAttachment,
+    PromptAgentConfig,
+    ModelConfig,
+    RunBudget,
+    ApprovalPolicy,
+    ToolAttachment,
 )
 
 client.agents.create_version(
@@ -74,10 +78,10 @@ Executions form a tree and can park at `waiting_approval`:
 
 ```python
 for execution in client.executions.approval_inbox().data:
-    client.executions.approve(execution.id)   # or .deny(execution.id, reason="…")
+    client.executions.approve(execution.id)  # or .deny(execution.id, reason="…")
 
 tree = client.executions.tree("execution-id")  # full children[] populated
-client.executions.cancel("execution-id")       # cooperative cancel
+client.executions.cancel("execution-id")  # cooperative cancel
 ```
 
 ## Assets
