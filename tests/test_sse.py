@@ -11,12 +11,9 @@ from promptrails._sse import (
     _iter_sse_frames,
 )
 from promptrails.agent_config import (
-    ChainAgentConfig,
-    CompositeAgentConfig,
-    CompositeStep,
-    MultiAgentConfig,
-    PromptLink,
-    SimpleAgentConfig,
+    PromptAgentConfig,
+    SubAgentAttachment,
+    ToolAttachment,
     WorkflowAgentConfig,
     WorkflowNode,
 )
@@ -89,22 +86,26 @@ def test_error_event_prefers_message_then_error():
 
 
 def test_agent_config_to_dict_injects_type_discriminator():
-    assert SimpleAgentConfig(prompt_id="p1").to_dict()["type"] == "simple"
-    assert ChainAgentConfig(prompt_ids=[PromptLink("p1", "main", 0)]).to_dict()["type"] == "chain"
-    assert (
-        MultiAgentConfig(prompt_ids=[PromptLink("p1", "a", 0)]).to_dict()["type"] == "multi_agent"
-    )
+    # API v2 has exactly two kinds: agent and workflow.
+    assert PromptAgentConfig(prompt_id="p1").to_dict() == {"prompt_id": "p1", "type": "agent"}
     assert WorkflowAgentConfig(nodes=[WorkflowNode(id="n1")]).to_dict()["type"] == "workflow"
-    assert (
-        CompositeAgentConfig(steps=[CompositeStep(id="s1", agent_id="a1")]).to_dict()["type"]
-        == "composite"
-    )
 
 
-def test_simple_config_drops_unset_fields():
-    out = SimpleAgentConfig(prompt_id="p1").to_dict()
-    # Optional fields not set should not leak through.
-    assert "max_tokens" not in out
-    assert "temperature" not in out
-    assert "llm_model_id" not in out
-    assert "approval_checkpoint_name" not in out
+def test_workflow_node_drops_unset_fields():
+    out = WorkflowAgentConfig(nodes=[WorkflowNode(id="n1", prompt_id="p1")]).to_dict()
+    node = out["nodes"][0]
+    # Optional media fields not set should not leak through.
+    assert node == {"id": "n1", "depends_on": [], "prompt_id": "p1"}
+
+
+def test_attachment_helpers_strip_none():
+    assert ToolAttachment(mcp_tool_id="t1").to_dict() == {
+        "mcp_tool_id": "t1",
+        "requires_approval": False,
+        "no_retry": False,
+    }
+    assert SubAgentAttachment(agent_id="a1", alias="helper").to_dict() == {
+        "agent_id": "a1",
+        "alias": "helper",
+        "requires_approval": False,
+    }

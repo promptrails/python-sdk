@@ -55,7 +55,7 @@ auto-instrumented — see [integrations](docs/integrations.md).
 
 ## Documentation
 
-- [API client](docs/api-client.md) — resources, error handling, media studio, configuration
+- [API client](docs/api-client.md) — resources, error handling, agent versions, approvals, configuration
 - [Tracing](docs/tracing.md) — spans, decorators, batching, configuration
 - [Integrations](docs/integrations.md) — LangChain, OpenAI, OpenTelemetry
 

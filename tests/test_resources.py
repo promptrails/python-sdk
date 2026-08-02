@@ -23,31 +23,6 @@ def _page(items):
     )
 
 
-# --------------------------- Costs ---------------------------
-
-
-@respx.mock
-def test_costs_summary():
-    respx.get(f"{BASE}/api/v1/costs/summary").mock(
-        return_value=_ok({"data": {"total_tokens": 100, "total_executions": 3}})
-    )
-    with _client() as c:
-        summary = c.costs.get_summary()
-    assert summary.total_tokens == 100
-    assert summary.total_executions == 3
-
-
-@respx.mock
-def test_costs_agent_summary():
-    route = respx.get(f"{BASE}/api/v1/costs/agents/ag1").mock(
-        return_value=_ok({"data": {"total_tokens": 5}})
-    )
-    with _client() as c:
-        summary = c.costs.get_agent_summary("ag1")
-    assert route.called
-    assert summary.total_tokens == 5
-
-
 # --------------------------- A2A ---------------------------
 
 
@@ -147,52 +122,51 @@ def test_assets_get_and_signed_url():
     assert signed.url == "https://signed"
 
 
-# --------------------------- Scores ---------------------------
+# --------------------------- Traces ---------------------------
 
 
 @respx.mock
-def test_scores_crud():
-    respx.get(f"{BASE}/api/v1/scores").mock(return_value=_page([{"id": "s1"}]))
-    respx.get(f"{BASE}/api/v1/scores/s1").mock(
-        return_value=_ok({"data": {"id": "s1", "value": 0.9}})
+def test_traces_summary():
+    route = respx.get(f"{BASE}/api/v1/traces/summary").mock(
+        return_value=_ok({"data": {"total_traces": 12, "total_tokens": 3400, "error_count": 1}})
     )
-    respx.post(f"{BASE}/api/v1/scores").mock(return_value=_ok({"data": {"id": "s1"}}))
-    respx.patch(f"{BASE}/api/v1/scores/s1").mock(
-        return_value=_ok({"data": {"id": "s1", "value": 0.5}})
-    )
-    respx.delete(f"{BASE}/api/v1/scores/s1").mock(return_value=_ok({}))
-
     with _client() as c:
-        assert len(c.scores.list().data) == 1
-        assert c.scores.get("s1").value == 0.9
-        created = c.scores.create(trace_id="tr1", name="acc", value=1.0)
-        assert created.id == "s1"
-        updated = c.scores.update("s1", value=0.5)
-        assert updated.value == 0.5
-        c.scores.delete("s1")
+        summary = c.traces.get_summary(agent_id="ag1", date_from="2026-01-01")
+    assert summary.total_traces == 12
+    assert summary.total_tokens == 3400
+    request = route.calls.last.request
+    assert request.url.params["agent_id"] == "ag1"
+    assert request.url.params["date_from"] == "2026-01-01"
 
 
 @respx.mock
-def test_scores_aggregates():
-    respx.get(f"{BASE}/api/v1/scores/aggregates").mock(
-        return_value=_ok({"data": [{"name": "acc", "count": 3}]})
+def test_traces_ingest():
+    route = respx.post(f"{BASE}/api/v1/traces/ingest").mock(
+        return_value=_ok({"data": {"ingested": 1}})
     )
     with _client() as c:
-        aggs = c.scores.get_aggregates()
-    assert len(aggs) == 1
-    assert aggs[0].count == 3
+        result = c.traces.ingest(
+            [{"trace_id": "t1", "span_id": "s1", "name": "run", "kind": "agent"}]
+        )
+    assert result == {"ingested": 1}
+    assert b'"spans"' in route.calls.last.request.read()
+
+
+# --------------------------- Guardrails ---------------------------
 
 
 @respx.mock
-def test_score_configs():
-    respx.get(f"{BASE}/api/v1/score-configs").mock(return_value=_page([{"id": "cfg1"}]))
-    respx.get(f"{BASE}/api/v1/score-configs/cfg1").mock(return_value=_ok({"data": {"id": "cfg1"}}))
-    respx.post(f"{BASE}/api/v1/score-configs").mock(return_value=_ok({"data": {"id": "cfg1"}}))
-    respx.delete(f"{BASE}/api/v1/score-configs/cfg1").mock(return_value=_ok({}))
-
+def test_guardrails_scanners_and_update():
+    respx.get(f"{BASE}/api/v1/guardrails/scanners").mock(
+        return_value=_ok({"data": [{"type": "pii", "label": "PII", "category": "local"}]})
+    )
+    respx.patch(f"{BASE}/api/v1/guardrails/g1").mock(
+        return_value=_ok({"data": {"id": "g1", "action": "log"}})
+    )
+    respx.delete(f"{BASE}/api/v1/guardrails/g1").mock(return_value=_ok({}))
     with _client() as c:
-        assert len(c.scores.list_configs().data) == 1
-        assert c.scores.get_config("cfg1").id == "cfg1"
-        created = c.scores.create_config(name="acc", data_type="numeric")
-        assert created.id == "cfg1"
-        c.scores.delete_config("cfg1")
+        scanners = c.guardrails.list_scanners()
+        updated = c.guardrails.update("g1", action="log")
+        c.guardrails.delete("g1")
+    assert scanners[0].type == "pii"
+    assert updated.action == "log"

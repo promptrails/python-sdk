@@ -31,44 +31,58 @@ except NotFoundError as e:
 
 | Resource                  | Methods                                                                  |
 | ------------------------- | ------------------------------------------------------------------------ |
-| `client.agents`           | `list`, `get`, `create`, `update`, `delete`, `execute`, `list_versions`, `create_version`, `list_guardrails`, `create_guardrail` |
-| `client.prompts`          | `list`, `get`, `create`, `update`, `delete`, `list_versions`, `create_version` |
-| `client.executions`       | `list`, `get`                                                            |
+| `client.agents`           | `list`, `get`, `create`, `update`, `delete`, `execute`, `list_versions`, `create_version`, `promote_version`, `preview`, `playground`, `list_guardrails`, `create_guardrail` |
+| `client.prompts`          | `list`, `get`, `create`, `update`, `delete`, `list_versions`, `create_version` (content-only), `promote_version`, `preview` |
+| `client.executions`       | `list`, `get`, `tree`, `cancel`, `approval_inbox`, `approve`, `deny`, `stream` |
 | `client.credentials`      | `list`, `get`, `create`, `update`, `delete`, `set_default`, `check_connection` |
 | `client.data_sources`     | `list`, `get`, `create`, `update`, `delete`, `list_versions`, `create_version`, `test_connection`, `query` |
 | `client.chat`             | `list_sessions`, `get_session`, `create_session`, `delete_session`, `list_messages`, `send_message` |
-| `client.traces`           | `list`, `get_by_trace_id`                                                |
-| `client.costs`            | `get_summary`, `get_agent_summary`                                       |
-| `client.scores`           | `list`, `get`, `create`, `update`, `delete`, `list_configs`, `get_config`, `create_config`, `update_config`, `delete_config`, `aggregates` |
+| `client.traces`           | `list`, `get_by_trace_id`, `get_summary`, `pii_report`, `ingest`         |
 | `client.mcp_tools`        | `list`, `get`, `create`, `update`, `delete`                              |
-| `client.approvals`        | `list`, `get`, `decide`                                                  |
+| `client.guardrails`       | `list_scanners`, `update`, `delete`                                      |
+| `client.llm_models`       | `list`, `list_available`                                                 |
 | `client.agent_triggers`   | `list`, `get`, `create` (with `source` + `source_config`), `update`, `delete` |
 | `client.agent_vfs`        | `list`, `read`, `write`, `stat`, `mkdir`, `move`, `copy`, `delete`, `grep`, `glob`, `usage` |
 | `client.a2a`              | `get_agent_card`, `send_message`, `get_task`, `list_tasks`, `cancel_task` |
-| `client.media_models`     | `list`                                                                   |
-| `client.media`            | `generate`                                                               |
 | `client.assets`           | `list`, `get`, `delete`, `get_signed_url`                                |
 
-## Media Studio
+## Agent versions (model config)
 
-Generate images, speech, and video using various providers:
+In API v2 a prompt version is pure content — model, sampling, tools, budget,
+approval policy and cache TTL are owned by the **agent version**:
 
 ```python
-# List available media models
-models = client.media_models.list(media_type="image")
-for model in models:
-    print(f"{model.provider}/{model.model_id}: {model.display_name}")
-
-# Generate an image
-result = client.media.generate(
-    provider="fal",
-    media_type="image",
-    model="fal-ai/flux/schnell",
-    prompt="A futuristic cityscape at sunset",
-    config={"width": 1024, "height": 768},
+from promptrails import (
+    PromptAgentConfig, ModelConfig, RunBudget, ApprovalPolicy, ToolAttachment,
 )
-print(result.url)
 
+client.agents.create_version(
+    "agent-id",
+    version="1.0.0",
+    config=PromptAgentConfig(prompt_id="prompt-id"),
+    model_config=ModelConfig(model_id="llm-model-id", temperature=0.2),
+    run_budget=RunBudget(max_cost=2.0, max_depth=4),
+    approval_policy=ApprovalPolicy(mode="admins"),
+    cache_timeout=300,
+    tools=[ToolAttachment(mcp_tool_id="tool-id", requires_approval=True)],
+)
+```
+
+## Human-in-the-loop approvals
+
+Executions form a tree and can park at `waiting_approval`:
+
+```python
+for execution in client.executions.approval_inbox().data:
+    client.executions.approve(execution.id)   # or .deny(execution.id, reason="…")
+
+tree = client.executions.tree("execution-id")  # full children[] populated
+client.executions.cancel("execution-id")       # cooperative cancel
+```
+
+## Assets
+
+```python
 # List assets
 assets = client.assets.list(type="image")
 for asset in assets.data:

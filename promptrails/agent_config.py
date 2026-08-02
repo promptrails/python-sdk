@@ -1,8 +1,19 @@
-"""Typed agent configs used by ``agents.create_version``.
+"""Typed agent-version configs used by ``agents.create_version``.
 
-Each concrete class declares the fields the backend expects for its agent
-type. ``to_dict()`` emits the JSON payload with the ``type`` discriminator
-injected automatically, so callers never forget to set it.
+PromptRails API v2 has exactly two agent kinds:
+
+* ``agent``    — a prompt plus optional tools / sub-agents (a supervisor when it
+  has sub-agents). Built with :class:`PromptAgentConfig`.
+* ``workflow`` — a deterministic DAG of nodes. Built with
+  :class:`WorkflowAgentConfig`.
+
+``to_dict()`` emits the JSON ``config`` payload with the ``type`` discriminator
+injected automatically, so callers never forget to set it. Model, sampling,
+budget, approval policy, cache TTL and tool/sub-agent attachments are *not* part
+of ``config`` — they are version-scoped fields passed alongside it to
+``create_version`` (see :class:`~promptrails.types.ModelConfig`,
+:class:`~promptrails.types.RunBudget`, :class:`~promptrails.types.ApprovalPolicy`,
+:class:`ToolAttachment`, :class:`SubAgentAttachment`).
 """
 
 from __future__ import annotations
@@ -11,17 +22,14 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
 
-@dataclass
-class PromptLink:
-    """Pins a prompt into a chain/multi-agent step at a role."""
-
-    prompt_id: str
-    role: str
-    sort_order: int
+def _strip_none(d: Dict[str, Any]) -> Dict[str, Any]:
+    return {k: v for k, v in d.items() if v is not None}
 
 
 @dataclass
 class WorkflowNode:
+    """A single node in a ``workflow`` agent's DAG."""
+
     id: str
     depends_on: List[str] = field(default_factory=list)
     prompt_id: Optional[str] = None
@@ -33,19 +41,53 @@ class WorkflowNode:
 
 
 @dataclass
-class CompositeStep:
-    id: str
+class ToolAttachment:
+    """An MCP tool attached to an agent version with per-tool policy."""
+
+    mcp_tool_id: str
+    requires_approval: bool = False
+    no_retry: bool = False
+    sort_order: Optional[int] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return _strip_none(
+            {
+                "mcp_tool_id": self.mcp_tool_id,
+                "requires_approval": self.requires_approval,
+                "no_retry": self.no_retry,
+                "sort_order": self.sort_order,
+            }
+        )
+
+
+@dataclass
+class SubAgentAttachment:
+    """A delegate sub-agent attached to an agent version (agents-as-tools)."""
+
     agent_id: str
-    depends_on: List[str] = field(default_factory=list)
-    input_mapping: Optional[Dict[str, Any]] = None
+    alias: str
+    description: Optional[str] = None
+    mode: Optional[str] = None  # "delegate" | "handoff"
+    context_mode: Optional[str] = None  # "task" | "window"
+    requires_approval: bool = False
+    sort_order: Optional[int] = None
 
-
-def _strip_none(d: Dict[str, Any]) -> Dict[str, Any]:
-    return {k: v for k, v in d.items() if v is not None}
+    def to_dict(self) -> Dict[str, Any]:
+        return _strip_none(
+            {
+                "agent_id": self.agent_id,
+                "alias": self.alias,
+                "description": self.description,
+                "mode": self.mode,
+                "context_mode": self.context_mode,
+                "requires_approval": self.requires_approval,
+                "sort_order": self.sort_order,
+            }
+        )
 
 
 class AgentConfig:
-    """Marker base class. Subclasses implement ``to_dict()``."""
+    """Marker base class for version ``config`` payloads."""
 
     type: str = ""
 
@@ -54,85 +96,24 @@ class AgentConfig:
 
 
 @dataclass
-class SimpleAgentConfig(AgentConfig):
+class PromptAgentConfig(AgentConfig):
+    """Config for an ``agent`` — a single prompt (+ optional tools/sub-agents)."""
+
     prompt_id: str
-    approval_required: bool = False
-    approval_checkpoint_name: Optional[str] = None
-    max_tokens: Optional[int] = None
-    temperature: Optional[float] = None
-    llm_model_id: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        out = _strip_none(
-            {
-                "prompt_id": self.prompt_id,
-                "approval_required": self.approval_required,
-                "approval_checkpoint_name": self.approval_checkpoint_name,
-                "max_tokens": self.max_tokens,
-                "temperature": self.temperature,
-                "llm_model_id": self.llm_model_id,
-            }
-        )
-        out["type"] = "simple"
-        return out
-
-
-@dataclass
-class ChainAgentConfig(AgentConfig):
-    prompt_ids: List[PromptLink]
-    approval_required: bool = False
-    approval_checkpoint_name: Optional[str] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        out: Dict[str, Any] = {
-            "prompt_ids": [asdict(p) for p in self.prompt_ids],
-            "approval_required": self.approval_required,
-        }
-        if self.approval_checkpoint_name is not None:
-            out["approval_checkpoint_name"] = self.approval_checkpoint_name
-        out["type"] = "chain"
-        return out
-
-
-@dataclass
-class MultiAgentConfig(AgentConfig):
-    prompt_ids: List[PromptLink]
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "prompt_ids": [asdict(p) for p in self.prompt_ids],
-            "type": "multi_agent",
-        }
+        return {"prompt_id": self.prompt_id, "type": "agent"}
 
 
 @dataclass
 class WorkflowAgentConfig(AgentConfig):
+    """Config for a ``workflow`` — a deterministic DAG of nodes."""
+
     nodes: List[WorkflowNode]
 
     def to_dict(self) -> Dict[str, Any]:
-        nodes: List[Dict[str, Any]] = []
-        for n in self.nodes:
-            d = asdict(n)
-            nodes.append(_strip_none(d))
+        nodes = [_strip_none(asdict(n)) for n in self.nodes]
         return {"nodes": nodes, "type": "workflow"}
 
 
-@dataclass
-class CompositeAgentConfig(AgentConfig):
-    steps: List[CompositeStep]
-
-    def to_dict(self) -> Dict[str, Any]:
-        steps: List[Dict[str, Any]] = []
-        for s in self.steps:
-            d = asdict(s)
-            steps.append(_strip_none(d))
-        return {"steps": steps, "type": "composite"}
-
-
-AnyAgentConfig = Union[
-    SimpleAgentConfig,
-    ChainAgentConfig,
-    MultiAgentConfig,
-    WorkflowAgentConfig,
-    CompositeAgentConfig,
-]
+AnyAgentConfig = Union[PromptAgentConfig, WorkflowAgentConfig]

@@ -32,6 +32,41 @@ class ExecutionsResource(BaseResource):
         body = self._http.get(f"/api/v1/executions/{execution_id}")
         return AgentExecution.from_dict(self._unwrap(body))
 
+    def tree(self, execution_id: str) -> AgentExecution:
+        """Fetch the execution with its full ``children`` tree populated."""
+        body = self._http.get(f"/api/v1/executions/{execution_id}/tree")
+        return AgentExecution.from_dict(self._unwrap(body))
+
+    def cancel(self, execution_id: str) -> AgentExecution:
+        """Request cooperative cancellation of a running execution."""
+        body = self._http.post(f"/api/v1/executions/{execution_id}/cancel", json={})
+        return AgentExecution.from_dict(self._unwrap(body))
+
+    def approval_inbox(
+        self, *, page: int = 1, limit: int = 20
+    ) -> PaginatedResponse[AgentExecution]:
+        """List executions parked at ``waiting_approval``."""
+        body = self._http.get(
+            "/api/v1/executions/approval-inbox", params={"page": page, "limit": limit}
+        )
+        return PaginatedResponse.from_response(body, AgentExecution.from_dict)
+
+    def approve(self, execution_id: str, *, reason: Optional[str] = None) -> AgentExecution:
+        """Approve a run parked at ``waiting_approval`` and resume it."""
+        payload: Dict[str, Any] = {}
+        if reason is not None:
+            payload["reason"] = reason
+        body = self._http.post(f"/api/v1/executions/{execution_id}/approve", json=payload)
+        return AgentExecution.from_dict(self._unwrap(body))
+
+    def deny(self, execution_id: str, *, reason: Optional[str] = None) -> AgentExecution:
+        """Deny a run parked at ``waiting_approval`` and resume with a denial."""
+        payload: Dict[str, Any] = {}
+        if reason is not None:
+            payload["reason"] = reason
+        body = self._http.post(f"/api/v1/executions/{execution_id}/deny", json=payload)
+        return AgentExecution.from_dict(self._unwrap(body))
+
     def stream(self, execution_id: str) -> Iterator[StreamEvent]:
         """Subscribe to the live SSE stream for an execution.
 
@@ -68,6 +103,41 @@ class AsyncExecutionsResource(AsyncBaseResource):
 
     async def get(self, execution_id: str) -> AgentExecution:
         body = await self._http.get(f"/api/v1/executions/{execution_id}")
+        return AgentExecution.from_dict(self._unwrap(body))
+
+    async def tree(self, execution_id: str) -> AgentExecution:
+        """Fetch the execution with its full ``children`` tree populated."""
+        body = await self._http.get(f"/api/v1/executions/{execution_id}/tree")
+        return AgentExecution.from_dict(self._unwrap(body))
+
+    async def cancel(self, execution_id: str) -> AgentExecution:
+        """Request cooperative cancellation of a running execution."""
+        body = await self._http.post(f"/api/v1/executions/{execution_id}/cancel", json={})
+        return AgentExecution.from_dict(self._unwrap(body))
+
+    async def approval_inbox(
+        self, *, page: int = 1, limit: int = 20
+    ) -> PaginatedResponse[AgentExecution]:
+        """List executions parked at ``waiting_approval``."""
+        body = await self._http.get(
+            "/api/v1/executions/approval-inbox", params={"page": page, "limit": limit}
+        )
+        return PaginatedResponse.from_response(body, AgentExecution.from_dict)
+
+    async def approve(self, execution_id: str, *, reason: Optional[str] = None) -> AgentExecution:
+        """Approve a run parked at ``waiting_approval`` and resume it."""
+        payload: Dict[str, Any] = {}
+        if reason is not None:
+            payload["reason"] = reason
+        body = await self._http.post(f"/api/v1/executions/{execution_id}/approve", json=payload)
+        return AgentExecution.from_dict(self._unwrap(body))
+
+    async def deny(self, execution_id: str, *, reason: Optional[str] = None) -> AgentExecution:
+        """Deny a run parked at ``waiting_approval`` and resume with a denial."""
+        payload: Dict[str, Any] = {}
+        if reason is not None:
+            payload["reason"] = reason
+        body = await self._http.post(f"/api/v1/executions/{execution_id}/deny", json=payload)
         return AgentExecution.from_dict(self._unwrap(body))
 
     async def stream(self, execution_id: str) -> AsyncIterator[StreamEvent]:

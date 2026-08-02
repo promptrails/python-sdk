@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from ..pagination import PaginatedResponse
-from ..types import Prompt, PromptVersion, RunPromptResponse
+from ..types import Prompt, PromptVersion
 from .base import AsyncBaseResource, BaseResource
 
 
@@ -39,37 +39,24 @@ class PromptsResource(BaseResource):
         version: str,
         user_prompt: str,
         system_prompt: str = "",
-        llm_model_id: Optional[str] = None,
-        fallback_llm_model_id: Optional[str] = None,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-        top_p: Optional[float] = None,
         input_schema: Optional[Dict[str, Any]] = None,
-        output_schema: Optional[Dict[str, Any]] = None,
         config: Optional[Dict[str, Any]] = None,
         set_current: bool = False,
         message: Optional[str] = None,
     ) -> PromptVersion:
+        """Create a content-only prompt version.
+
+        Model, sampling, tools, output schema and cache TTL live on the agent
+        version (see :meth:`AgentsResource.create_version`), not on the prompt.
+        """
         payload: Dict[str, Any] = {
             "version": version,
             "user_prompt": user_prompt,
             "system_prompt": system_prompt,
             "set_current": set_current,
         }
-        if llm_model_id is not None:
-            payload["llm_model_id"] = llm_model_id
-        if fallback_llm_model_id is not None:
-            payload["fallback_llm_model_id"] = fallback_llm_model_id
-        if temperature is not None:
-            payload["temperature"] = temperature
-        if max_tokens is not None:
-            payload["max_tokens"] = max_tokens
-        if top_p is not None:
-            payload["top_p"] = top_p
         if input_schema is not None:
             payload["input_schema"] = input_schema
-        if output_schema is not None:
-            payload["output_schema"] = output_schema
         if config is not None:
             payload["config"] = config
         if message is not None:
@@ -93,10 +80,6 @@ class PromptsResource(BaseResource):
             payload["version_id"] = version_id
         body = self._http.post(f"/api/v1/prompts/{prompt_id}/preview", json=payload)
         return self._unwrap(body)
-
-    def run_prompt(self, prompt_id: str, data: Dict[str, Any]) -> RunPromptResponse:
-        body = self._http.post(f"/api/v1/prompts/{prompt_id}/run", json=data)
-        return RunPromptResponse.from_dict(self._unwrap(body))
 
 
 class AsyncPromptsResource(AsyncBaseResource):
@@ -133,37 +116,20 @@ class AsyncPromptsResource(AsyncBaseResource):
         version: str,
         user_prompt: str,
         system_prompt: str = "",
-        llm_model_id: Optional[str] = None,
-        fallback_llm_model_id: Optional[str] = None,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
-        top_p: Optional[float] = None,
         input_schema: Optional[Dict[str, Any]] = None,
-        output_schema: Optional[Dict[str, Any]] = None,
         config: Optional[Dict[str, Any]] = None,
         set_current: bool = False,
         message: Optional[str] = None,
     ) -> PromptVersion:
+        """Async variant of :meth:`PromptsResource.create_version`."""
         payload: Dict[str, Any] = {
             "version": version,
             "user_prompt": user_prompt,
             "system_prompt": system_prompt,
             "set_current": set_current,
         }
-        if llm_model_id is not None:
-            payload["llm_model_id"] = llm_model_id
-        if fallback_llm_model_id is not None:
-            payload["fallback_llm_model_id"] = fallback_llm_model_id
-        if temperature is not None:
-            payload["temperature"] = temperature
-        if max_tokens is not None:
-            payload["max_tokens"] = max_tokens
-        if top_p is not None:
-            payload["top_p"] = top_p
         if input_schema is not None:
             payload["input_schema"] = input_schema
-        if output_schema is not None:
-            payload["output_schema"] = output_schema
         if config is not None:
             payload["config"] = config
         if message is not None:
@@ -189,7 +155,3 @@ class AsyncPromptsResource(AsyncBaseResource):
             payload["version_id"] = version_id
         body = await self._http.post(f"/api/v1/prompts/{prompt_id}/preview", json=payload)
         return self._unwrap(body)
-
-    async def run_prompt(self, prompt_id: str, data: Dict[str, Any]) -> RunPromptResponse:
-        body = await self._http.post(f"/api/v1/prompts/{prompt_id}/run", json=data)
-        return RunPromptResponse.from_dict(self._unwrap(body))

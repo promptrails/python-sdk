@@ -40,10 +40,11 @@ class TestClient:
         assert client.data_sources is not None
         assert client.chat is not None
         assert client.traces is not None
-        assert client.costs is not None
         assert client.mcp_tools is not None
         assert client.guardrails is not None
-        assert client.approvals is not None
+        assert not hasattr(client, "costs")
+        assert not hasattr(client, "scores")
+        assert not hasattr(client, "approvals")
         client.close()
 
     def test_context_manager(self):
