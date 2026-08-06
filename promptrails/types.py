@@ -326,6 +326,15 @@ class ChatSession:
         return _from_dict(cls, data)
 
 
+@dataclass
+class ChatFeedbackResponse:
+    submitted: bool = False
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "ChatFeedbackResponse":
+        return _from_dict(cls, data)
+
+
 # --- Trace ---
 
 

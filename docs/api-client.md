@@ -36,7 +36,7 @@ except NotFoundError as e:
 | `client.executions`       | `list`, `get`, `tree`, `cancel`, `approval_inbox`, `approve`, `deny`, `stream` |
 | `client.credentials`      | `list`, `get`, `create`, `update`, `delete`, `set_default`, `check_connection` |
 | `client.data_sources`     | `list`, `get`, `create`, `update`, `delete`, `list_versions`, `create_version`, `test_connection`, `query` |
-| `client.chat`             | `list_sessions`, `get_session`, `create_session`, `delete_session`, `list_messages`, `send_message` |
+| `client.chat`             | `list_sessions`, `get_session`, `create_session`, `delete_session`, `list_messages`, `send_message`, `send_message_stream`, `submit_feedback` |
 | `client.traces`           | `list`, `get_by_trace_id`, `get_summary`, `pii_report`, `ingest`         |
 | `client.mcp_tools`        | `list`, `get`, `create`, `update`, `delete`                              |
 | `client.guardrails`       | `list_scanners`, `update`, `delete`                                      |
@@ -45,6 +45,11 @@ except NotFoundError as e:
 | `client.agent_vfs`        | `list`, `read`, `write`, `stat`, `mkdir`, `move`, `copy`, `delete`, `grep`, `glob`, `usage` |
 | `client.a2a`              | `get_agent_card`, `send_message`, `get_task`, `list_tasks`, `cancel_task` |
 | `client.assets`           | `list`, `get`, `delete`, `get_signed_url`                                |
+
+The browser-only `/api/v1/browser/chat/*` token and resume protocol is exposed
+by [`@promptrails/ai-chat`](https://github.com/promptrails/ai-chat), which is
+designed for publishable origin-restricted keys. This server-key SDK does not
+send long-lived PromptRails credentials to browser applications.
 
 ## Agent versions (model config)
 

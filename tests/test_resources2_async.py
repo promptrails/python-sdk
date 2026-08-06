@@ -78,12 +78,18 @@ async def test_async_chat():
     respx.post(f"{BASE}/api/v1/chat/sessions/s1/messages").mock(
         return_value=_ok({"data": {"id": "m1"}})
     )
+    feedback = respx.post(f"{BASE}/api/v1/chat/sessions/s1/feedback").mock(
+        return_value=_ok({"data": {"submitted": True}})
+    )
     respx.delete(f"{BASE}/api/v1/chat/sessions/s1").mock(return_value=_ok({}))
     async with _client() as c:
         assert len((await c.chat.list_sessions()).data) == 1
         await c.chat.create_session(agent_id="a1")
         await c.chat.send_message("s1", content="hi")
+        result = await c.chat.submit_feedback("s1", execution_id="exec1", value=-1)
+        assert result.submitted is True
         await c.chat.delete_session("s1")
+    assert feedback.calls.last.request.content == b'{"execution_id":"exec1","value":-1}'
 
 
 @pytest.mark.asyncio

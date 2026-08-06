@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, AsyncIterator, Dict, Iterator, Optional
+from typing import Any, AsyncIterator, Dict, Iterator, Literal, Optional
 
 from .._sse import StreamEvent, aiter_sse, iter_sse
 from ..pagination import PaginatedResponse
-from ..types import ChatMessage, ChatSession
+from ..types import ChatFeedbackResponse, ChatMessage, ChatSession
 from .base import AsyncBaseResource, BaseResource
 
 
@@ -44,6 +44,16 @@ class ChatResource(BaseResource):
             f"/api/v1/chat/sessions/{session_id}/messages", json={"content": content}
         )
         return ChatMessage.from_dict(self._unwrap(body))
+
+    def submit_feedback(
+        self, session_id: str, *, execution_id: str, value: Literal[-1, 1]
+    ) -> ChatFeedbackResponse:
+        """Submit or update thumbs-up/down feedback for a chat execution."""
+        body = self._http.post(
+            f"/api/v1/chat/sessions/{session_id}/feedback",
+            json={"execution_id": execution_id, "value": value},
+        )
+        return ChatFeedbackResponse.from_dict(self._unwrap(body))
 
     def send_message_stream(self, session_id: str, *, content: str) -> Iterator[StreamEvent]:
         """Post a message and iterate the live SSE event stream.
@@ -100,6 +110,16 @@ class AsyncChatResource(AsyncBaseResource):
             f"/api/v1/chat/sessions/{session_id}/messages", json={"content": content}
         )
         return ChatMessage.from_dict(self._unwrap(body))
+
+    async def submit_feedback(
+        self, session_id: str, *, execution_id: str, value: Literal[-1, 1]
+    ) -> ChatFeedbackResponse:
+        """Async variant of :meth:`ChatResource.submit_feedback`."""
+        body = await self._http.post(
+            f"/api/v1/chat/sessions/{session_id}/feedback",
+            json={"execution_id": execution_id, "value": value},
+        )
+        return ChatFeedbackResponse.from_dict(self._unwrap(body))
 
     async def send_message_stream(
         self, session_id: str, *, content: str

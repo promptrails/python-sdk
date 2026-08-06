@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "promptrails"
-version = "0.9.0"
+version = "0.9.1"
 description = "Official Python SDK for the PromptRails API"
 readme = "README.md"
 license = {text = "MIT"}

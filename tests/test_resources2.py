@@ -131,13 +131,19 @@ def test_chat_sessions():
     msg = respx.post(f"{BASE}/api/v1/chat/sessions/s1/messages").mock(
         return_value=_ok({"data": {"id": "m1"}})
     )
+    feedback = respx.post(f"{BASE}/api/v1/chat/sessions/s1/feedback").mock(
+        return_value=_ok({"data": {"submitted": True}})
+    )
     with _client() as c:
         assert len(c.chat.list_sessions().data) == 1
         assert c.chat.get_session("s1").id == "s1"
         c.chat.create_session(agent_id="a1")
         c.chat.send_message("s1", content="hi")
+        result = c.chat.submit_feedback("s1", execution_id="exec1", value=1)
+        assert result.submitted is True
         c.chat.delete_session("s1")
     assert msg.called
+    assert feedback.calls.last.request.content == b'{"execution_id":"exec1","value":1}'
 
 
 # --------------------------- Agent Triggers ---------------------------
